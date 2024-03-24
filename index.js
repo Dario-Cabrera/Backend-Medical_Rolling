@@ -1,4 +1,3 @@
-const dbConnect =  require ("./src/ConfigDB")
+const {dbConnect} =  require ("./src/ConfigDB")
 
 dbConnect();
-console.log("prueba")
