@@ -4,35 +4,47 @@ const UserModel = new Schema({
     name: {
         type: String, 
         require:true, 
-        minlength:5,
+        minlength:3,
         maxlength:50
         },
     lastname: {
         type: String, 
         require:true, 
-        minlength:5,
+        minlength:3,
         maxlength:50
         },
-    email:{
+    email:  {
         type: String, 
         require:true,    
+    },
+    province: {
+        type: String, 
+        require:true, 
+    },
+    area: {
+        type: Number,
+        require:true,
+    },
+    phone: {
+        type: Number,
+        require:true,
     },
     pass: {
         type: String, 
         require:true, 
         minlength:8,
-        maxlength:10
-        },
-    isAdmin: {
-        type: Boolean, 
-        require:true, 
+        maxlength:20
         },
     isDoctor: {
         type: Boolean, 
         require:true, 
-        },    
-    appointment:{
-        type: Object
+        },  
+    isAuditor: {
+        type: Boolean, 
+        require:true, 
+        },
+    appointments:{
+        type: Array
     },
     //Estos son los turnos, que serán un objeto que contenga fecha y hora.
 });
