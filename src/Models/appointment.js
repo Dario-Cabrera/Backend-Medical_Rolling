@@ -1,15 +1,15 @@
 const {Schema,model} = require ("mongoose")
 
-const AppointmentModel = new Schema({
-    Date: {
-        type: String, 
+const AppointmentsModel = new Schema({
+    appointmentDate: {
+        type: Date, 
         require:true,         
         },
-    Time: {
-        type: String, 
+    appointmentTime: {
+        type: Date, 
         require:true, 
         },
 // No se si se guarda como objeto (Hora y minutos)
 })
 
-module.exports = model ("appointment",AppointmentModel);
+module.exports = model ("appointments", AppointmentsModel);
