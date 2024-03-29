@@ -1,5 +1,7 @@
 const { UsersModel, DoctorsModel, AppointmentsModel } = require("../Models/");
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const { createAccessToken } = require("../Libs/jwt");
 
 // ----------------POST----------------
 
@@ -7,6 +9,7 @@ const bcrypt = require("bcrypt");
 
 const postUser = async (req, res) => {
   try {
+    //Deconstruye props de la consulta
     const {
       name,
       lastname,
@@ -19,9 +22,9 @@ const postUser = async (req, res) => {
       isAuditor,
       appointments,
     } = req.body;
-
+    // Hashea el passward
     const passwordHash = await bcrypt.hash(pass, 10);
-
+    //Modelo de props a guardar en el usuario
     const newUser = new UsersModel({
       name,
       lastname,
@@ -34,11 +37,14 @@ const postUser = async (req, res) => {
       isAuditor,
       appointments,
     });
+    //Guarda el usuario en la DB
     const userSaved = await newUser.save();
-
+    //Genera el token de enviando las props a la funcion createAccessToken
+    
     res.status(200).json({
       id: userSaved._id,
       name: userSaved.name,
+      pass:userSaved.pass,
       lastname: userSaved.lastname,
       email: userSaved.email,
       province: userSaved.province,
@@ -51,7 +57,7 @@ const postUser = async (req, res) => {
     });
   } catch (error) {
     console.log(error);
-    res.status(500).json({
+    res.status(500).send({
       message: "User not created",
     });
   }
@@ -74,31 +80,31 @@ const postDoctor = async (req, res) => {
     const passwordHash = await bcrypt.hash(pass, 10);
 
     const newDoctor = new DoctorsModel({
-        name,
-        lastname,
-        email,
-        pass: passwordHash,
-        specialty,
-        LicenceNumber,
-        isDoctor,
-        isAuditor,
-        appointments,
-      });
-      const doctorSaved = await newDoctor.save();
+      name,
+      lastname,
+      email,
+      pass: passwordHash,
+      specialty,
+      LicenceNumber,
+      isDoctor,
+      isAuditor,
+      appointments,
+    });
+    const doctorSaved = await newDoctor.save();
 
-      res.status(200).json({
-        id: doctorSaved._id,
-        name: doctorSaved.name,
-        lastname: doctorSaved.lastname,
-        email: doctorSaved.email,
-        province: doctorSaved.province,
-        area: doctorSaved.area,
-        phone: doctorSaved.phone,
-        isDoctor: doctorSaved.isDoctor,
-        isAuditor: doctorSaved.isAuditor,
-        appointments: doctorSaved.appointments,
-        
-      });
+
+     res.status(200).json({
+      id: doctorSaved._id,
+      name: doctorSaved.name,
+      lastname: doctorSaved.lastname,
+      email: doctorSaved.email,
+      province: doctorSaved.province,
+      area: doctorSaved.area,
+      phone: doctorSaved.phone,
+      isDoctor: doctorSaved.isDoctor,
+      isAuditor: doctorSaved.isAuditor,
+      appointments: doctorSaved.appointments,
+    });
   } catch (error) {
     console.log(error);
     res.status(500).json({
@@ -116,14 +122,91 @@ const postAppointment = async (req, res) => {
     });
     const appointmentSaved = await newAppointment.save();
     res.status(200).json({
-        appointmentDate: appointmentSaved.appointmentDate,
-        appointmentTime: appointmentSaved.appointmentTime,
-        
-      });
+      appointmentDate: appointmentSaved.appointmentDate,
+      appointmentTime: appointmentSaved.appointmentTime,
+    });
   } catch (error) {
     console.log(error);
     res.status(500).json({
       message: "Appointment not created",
+    });
+  }
+};
+//-------------POST LOGIN--------------
+const postUserLogin = async (req, res) => {
+  //Destructura email y pass
+  const { email, pass } = req.body;
+  //Buscar el usuario en la base de datos en imail
+  const userFound = await UsersModel.findOne({ email });
+  //Valida si se encontro o no
+  try {
+    if (!userFound) return res.status(400).json({ message: "User not found" });
+    //Valida si la contraseña es correcta
+    const isMatch = await bcrypt.compareSync(pass, userFound.pass);
+    if (!isMatch)
+      return res.status(400).json({ message: "Incorrect password" });
+    //Crea un token con las props del usuario encontrado
+    const token = await createAccessToken({
+      id: userFound._id,
+      isDoctor: userFound.isDoctor,
+      isAuditor: userFound.isAuditor,
+      name: userFound.name,
+      lastname: userFound.lastname,
+      email: userFound.email,
+      province: userFound.province,
+      area: userFound.area,
+      phone: userFound.phone,
+    });
+    //Muestra el token
+    res.status(200).json(token);
+
+   
+  } catch (error) {
+    res.status(500).json({
+      message: error.message,
+    });
+  }
+};
+const postDoctorLogin = async (req, res) => {
+  const { email, pass } = req.body;
+  const doctorFound = await UsersModel.findOne({ email });
+  try {
+    if (!doctorFound)
+      return res.status(400).json({ message: "Doctor not found" });
+
+    const isMatch = await bcrypt.compareSync(pass, doctorFound.pass);
+    if (!isMatch)
+      return res.status(400).json({ message: "Incorrect password" });
+
+    const token = await createAccessToken({
+      id: doctorFound._id,
+      isDoctor: doctorFound.isDoctor,
+      isAuditor: doctorFound.isAuditor,
+      name: doctorFound.name,
+      lastname: doctorFound.lastname,
+      email: doctorFound.email,
+      specialty: doctorFound.specialty,
+      LicenceNumber: doctorFound.LicenceNumber,
+      appointments: doctorFound.appointments,
+    });
+    res.status(200).json(token);
+
+    /* res.status(200).json({
+      id: doctorFound._id,
+      name: doctorFound.name,
+      lastname: doctorFound.lastname,
+      email: doctorFound.email,
+      province: doctorFound.province,
+      area: doctorFound.area,
+      phone: doctorFound.phone,
+      isDoctor: doctorFound.isDoctor,
+      isAuditor: doctorFound.isAuditor,
+      appointments: doctorFound.appointments,
+      
+    }); */
+  } catch (error) {
+    res.status(500).json({
+      message: error.message,
     });
   }
 };
@@ -378,6 +461,8 @@ module.exports = {
   postUser,
   postDoctor,
   postAppointment,
+  postUserLogin,
+  postDoctorLogin,
   getAllUsers,
   getAllDoctors,
   getAllAppointments,
