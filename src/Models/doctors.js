@@ -21,7 +21,7 @@ const DoctorsModel = new Schema({
         type: String, 
         require:true, 
         minlength:8,
-        maxlength:20
+        maxlength:80
         },
     specialty: {
         type: String, 

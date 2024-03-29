@@ -33,7 +33,7 @@ const UserModel = new Schema({
         type: String, 
         require:true, 
         minlength:8,
-        maxlength:20
+        maxlength:80
         },
     isDoctor: {
         type: Boolean, 
