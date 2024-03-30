@@ -1,3 +1,5 @@
+const cron = require("node-cron");
+const moment = require("moment-timezone");
 const { UsersModel, DoctorsModel, AppointmentsModel } = require("../Models/");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
@@ -457,6 +459,48 @@ const updateAppointmentById = async (req, res) => {
 
 // ----------------UPDATE----------------
 
+// ----------------DELETEAPPOINTMENTUSERPAST----------------
+
+const deletePastAppointmentsUsers = async () => {
+  try {
+    // Obtener la hora actual en la zona horaria local y convertirla a la zona horaria de Argentina
+    const currentDateTime = moment().tz("America/Argentina/Buenos_Aires");
+    console.log("Hora actual en Argentina:", currentDateTime.format());
+
+    // Buscar todos los doctores en la base de datos
+    const userCitas = await UsersModel.find();
+
+    // Iterar sobre cada doctor
+    for (const userCita of userCitas) {
+      // Filtrar las citas pasadas del doctor
+      const updatedAppointments = userCita.appointments.filter((appointment) => {
+        // Convertir la fecha y hora de la cita a un objeto Moment en UTC
+        const appointmentDateTimeUTC = moment.utc(appointment.dateTime);
+        // Ajustar la zona horaria a la de Argentina y restar 3 horas para corregir el desplazamiento
+        const appointmentDateTimeArgentina = appointmentDateTimeUTC.tz("America/Argentina/Buenos_Aires").add(3, "hours");
+        console.log("Fecha y hora de la cita:", appointmentDateTimeArgentina.format());
+
+        // Comparar si la cita es posterior a la hora actual en la zona horaria de Argentina
+        return appointmentDateTimeArgentina.isAfter(currentDateTime);
+      });
+      // Actualizar el array de citas del doctor con las citas filtradas
+      userCita.appointments = updatedAppointments;
+
+      // Guardar los cambios en la base de datos
+      await userCita.save();
+    }
+
+    console.log("Citas pasadas eliminadas con éxito.");
+  } catch (error) {
+    console.error("Error al eliminar citas pasadas:", error);
+  }
+};
+
+// Programar la ejecución de la función cada 10 segundos
+cron.schedule("*/30 * * * * ", deletePastAppointmentsUsers);
+
+// ----------------DELETEAPPOINTMENTUSERPAST----------------
+
 module.exports = {
   postUser,
   postDoctor,
@@ -475,4 +519,5 @@ module.exports = {
   updateUserById,
   updateDoctorById,
   updateAppointmentById,
+  deletePastAppointmentsUsers,
 };
