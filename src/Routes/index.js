@@ -29,7 +29,7 @@ const { validateToken } = require("../Auth");
 
 router.post("/createuser/", postUser);
 router.post("/createdoctor/", postDoctor);
-router.post("/createappointment/", postAppointment);
+router.post("/createappointment/", validateToken, postAppointment);
 
 //---------POST login----------
 

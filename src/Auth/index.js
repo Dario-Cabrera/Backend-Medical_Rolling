@@ -7,12 +7,12 @@ const validateToken = (req, res, next) => {
   if (!authorization)
     return res.status(401).json({ message: "No token, authoriztion denied" });
 
-  jwt.verify(authorization, TOKEN_SECRET, (err, user) => {
+  jwt.verify(authorization, TOKEN_SECRET, (err, userDecode) => {
     if (err) return res.status(401).json({ message: "Token is not valid" });
     /* console.log(user); */
-    req.user = user
-    next();
+    req.user = userDecode.payload;
   });
+  next();
 };
 
 module.exports = { validateToken };
