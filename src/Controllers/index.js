@@ -42,11 +42,11 @@ const postUser = async (req, res) => {
     //Guarda el usuario en la DB
     const userSaved = await newUser.save();
     //Genera el token de enviando las props a la funcion createAccessToken
-    
+
     res.status(200).json({
       id: userSaved._id,
       name: userSaved.name,
-      pass:userSaved.pass,
+      pass: userSaved.pass,
       lastname: userSaved.lastname,
       email: userSaved.email,
       province: userSaved.province,
@@ -55,7 +55,6 @@ const postUser = async (req, res) => {
       isDoctor: userSaved.isDoctor,
       isAuditor: userSaved.isAuditor,
       appointments: userSaved.appointments,
-     
     });
   } catch (error) {
     console.log(error);
@@ -94,8 +93,7 @@ const postDoctor = async (req, res) => {
     });
     const doctorSaved = await newDoctor.save();
 
-
-     res.status(200).json({
+    res.status(200).json({
       id: doctorSaved._id,
       name: doctorSaved.name,
       lastname: doctorSaved.lastname,
@@ -118,20 +116,24 @@ const postDoctor = async (req, res) => {
 const postAppointment = async (req, res) => {
   try {
     const { appointmentDate, appointmentTime } = req.body;
+    const { id: userId } = req.user; // Acceso al ID de usuario
+    const doctorid = req.headers.doctorid;
+    /* console.log(doctorid); */
+    /* const objDoctor = { doctor: "6607279d8734a52645ec9017" }; */
+
     const newAppointment = new AppointmentsModel({
       appointmentDate,
       appointmentTime,
+      user: userId,
+      doctor: doctorid,
     });
+
     const appointmentSaved = await newAppointment.save();
-    res.status(200).json({
-      appointmentDate: appointmentSaved.appointmentDate,
-      appointmentTime: appointmentSaved.appointmentTime,
-    });
+
+    res.status(200).json({ appointmentSaved });
   } catch (error) {
     console.log(error);
-    res.status(500).json({
-      message: "Appointment not created",
-    });
+    res.status(500).json({ message: "Appointment not created" });
   }
 };
 //-------------POST LOGIN--------------
@@ -161,8 +163,6 @@ const postUserLogin = async (req, res) => {
     });
     //Muestra el token
     res.status(200).json(token);
-
-   
   } catch (error) {
     res.status(500).json({
       message: error.message,
