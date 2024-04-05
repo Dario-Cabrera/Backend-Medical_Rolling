@@ -1,4 +1,4 @@
-const {Schema,model} = require ("mongoose")
+const { Schema, model } = require("mongoose");
 
 const DoctorsModel = new Schema({
     name: {
@@ -21,7 +21,7 @@ const DoctorsModel = new Schema({
         type: String, 
         require:true, 
         minlength:8,
-        maxlength:20
+        maxlength:80
         },
     specialty: {
         type: String, 
@@ -45,4 +45,4 @@ const DoctorsModel = new Schema({
     //Estos son los turnos, que tiene asignado el medico.
 });
 
-module.exports = model ("doctors", DoctorsModel);
+module.exports = model("doctors", DoctorsModel);
