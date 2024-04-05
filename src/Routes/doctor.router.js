@@ -6,10 +6,15 @@ const { getAllDoctors, getDoctorById } = require("../Controllers");
 const { deleteDoctorById } = require("../Controllers");
 const { updateDoctorById } = require("../Controllers");
 const { validateToken } = require("../Auth/validateToken");
+const { validateSchema } = require("../Auth/validator.middleware");
+const {
+  registerDoctorSchema,
+  loginDoctorSchema,
+} = require("../Schemas/doctor.schema");
 
-router.post("/createdoctor/", postDoctor);
+router.post("/createdoctor/", validateSchema(registerDoctorSchema), postDoctor);
 
-router.post("/logindoctor", postDoctorLogin);
+router.post("/logindoctor", validateSchema(loginDoctorSchema), postDoctorLogin);
 
 router.get("/gettingdoctors", getAllDoctors);
 
