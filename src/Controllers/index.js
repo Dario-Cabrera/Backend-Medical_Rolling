@@ -12,18 +12,7 @@ const { createAccessToken } = require("../Libs/jwt");
 const postUser = async (req, res) => {
   try {
     //Deconstruye props de la consulta
-    const {
-      name,
-      lastname,
-      email,
-      province,
-      area,
-      phone,
-      pass,
-      isDoctor,
-      isAuditor,
-      appointments,
-    } = req.body;
+    const { name, lastname, email, province, area, phone, pass, isDoctor, isAuditor, appointments } = req.body;
     // Hashea el passward
     const passwordHash = await bcrypt.hash(pass, 10);
     //Modelo de props a guardar en el usuario
@@ -66,17 +55,7 @@ const postUser = async (req, res) => {
 
 const postDoctor = async (req, res) => {
   try {
-    const {
-      name,
-      lastname,
-      email,
-      pass,
-      specialty,
-      LicenceNumber,
-      isDoctor,
-      isAuditor,
-      appointments,
-    } = req.body;
+    const { name, lastname, email, pass, specialty, LicenceNumber, isDoctor, isAuditor, appointments } = req.body;
 
     const passwordHash = await bcrypt.hash(pass, 10);
 
@@ -147,8 +126,7 @@ const postUserLogin = async (req, res) => {
     if (!userFound) return res.status(400).json({ message: "User not found" });
     //Valida si la contraseña es correcta
     const isMatch = await bcrypt.compareSync(pass, userFound.pass);
-    if (!isMatch)
-      return res.status(400).json({ message: "Incorrect password" });
+    if (!isMatch) return res.status(400).json({ message: "Incorrect password" });
     //Crea un token con las props del usuario encontrado
     const token = await createAccessToken({
       id: userFound._id,
@@ -172,14 +150,12 @@ const postUserLogin = async (req, res) => {
 const postDoctorLogin = async (req, res) => {
   const { email, pass } = req.body;
   const doctorFound = await DoctorsModel.findOne({ email });
-  
+
   try {
-    if (!doctorFound)
-      return res.status(400).json({ message: "Doctor not found" });
+    if (!doctorFound) return res.status(400).json({ message: "Doctor not found" });
 
     const isMatch = await bcrypt.compareSync(pass, doctorFound.pass);
-    if (!isMatch)
-      return res.status(400).json({ message: "Incorrect password" });
+    if (!isMatch) return res.status(400).json({ message: "Incorrect password" });
 
     const token = await createAccessToken({
       id: doctorFound._id,
@@ -306,11 +282,7 @@ const deleteUserById = async (req, res) => {
   try {
     const { id } = req.params;
     const deletedUser = await UsersModel.findByIdAndDelete(id);
-    deletedUser
-      ? res
-          .status(200)
-          .json({ message: "User deleted successfully", deletedUser })
-      : res.status(404).json({ message: "User not found" });
+    deletedUser ? res.status(200).json({ message: "User deleted successfully", deletedUser }) : res.status(404).json({ message: "User not found" });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Error deleting user" });
@@ -321,11 +293,7 @@ const deleteDoctorById = async (req, res) => {
   try {
     const { id } = req.params;
     const deletedDoctor = await DoctorsModel.findByIdAndDelete(id);
-    deletedDoctor
-      ? res
-          .status(200)
-          .json({ message: "Doctor deleted successfully", deletedDoctor })
-      : res.status(404).json({ message: "Doctor not found" });
+    deletedDoctor ? res.status(200).json({ message: "Doctor deleted successfully", deletedDoctor }) : res.status(404).json({ message: "Doctor not found" });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Error deleting doctor" });
@@ -355,18 +323,7 @@ const deleteAppointmentById = async (req, res) => {
 const updateUserById = async (req, res) => {
   try {
     const { id } = req.params;
-    const {
-      name,
-      lastname,
-      email,
-      province,
-      area,
-      phone,
-      pass,
-      isDoctor,
-      isAuditor,
-      appointments,
-    } = req.body;
+    const { name, lastname, email, province, area, phone, pass, isDoctor, isAuditor, appointments } = req.body;
     const updatedUser = await UsersModel.findByIdAndUpdate(
       id,
       {
@@ -383,11 +340,7 @@ const updateUserById = async (req, res) => {
       },
       { new: true }
     );
-    updatedUser
-      ? res
-          .status(200)
-          .json({ message: "User updated successfully", updatedUser })
-      : res.status(404).json({ message: "User not found" });
+    updatedUser ? res.status(200).json({ message: "User updated successfully", updatedUser }) : res.status(404).json({ message: "User not found" });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Error updating user" });
@@ -397,17 +350,7 @@ const updateUserById = async (req, res) => {
 const updateDoctorById = async (req, res) => {
   try {
     const { id } = req.params;
-    const {
-      name,
-      lastname,
-      email,
-      pass,
-      specialty,
-      LicenceNumber,
-      isDoctor,
-      isAuditor,
-      appointments,
-    } = req.body;
+    const { name, lastname, email, pass, specialty, LicenceNumber, isDoctor, isAuditor, appointments } = req.body;
     const updatedDoctor = await DoctorsModel.findByIdAndUpdate(
       id,
       {
@@ -423,11 +366,7 @@ const updateDoctorById = async (req, res) => {
       },
       { new: true }
     );
-    updatedDoctor
-      ? res
-          .status(200)
-          .json({ message: "Doctor updated successfully", updatedDoctor })
-      : res.status(404).json({ message: "Doctor not found" });
+    updatedDoctor ? res.status(200).json({ message: "Doctor updated successfully", updatedDoctor }) : res.status(404).json({ message: "Doctor not found" });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Error updating doctor" });
@@ -474,23 +413,16 @@ const deletePastAppointmentsUsers = async () => {
     // Iterar sobre cada doctor
     for (const userCita of userCitas) {
       // Filtrar las citas pasadas del doctor
-      const updatedAppointments = userCita.appointments.filter(
-        (appointment) => {
-          // Convertir la fecha y hora de la cita a un objeto Moment en UTC
-          const appointmentDateTimeUTC = moment.utc(appointment.dateTime);
-          // Ajustar la zona horaria a la de Argentina y restar 3 horas para corregir el desplazamiento
-          const appointmentDateTimeArgentina = appointmentDateTimeUTC
-            .tz("America/Argentina/Buenos_Aires")
-            .add(3, "hours");
-          console.log(
-            "Fecha y hora de la cita:",
-            appointmentDateTimeArgentina.format()
-          );
+      const updatedAppointments = userCita.appointments.filter((appointment) => {
+        // Convertir la fecha y hora de la cita a un objeto Moment en UTC
+        const appointmentDateTimeUTC = moment.utc(appointment.dateTime);
+        // Ajustar la zona horaria a la de Argentina y restar 3 horas para corregir el desplazamiento
+        const appointmentDateTimeArgentina = appointmentDateTimeUTC.tz("America/Argentina/Buenos_Aires").add(3, "hours");
+        console.log("Fecha y hora de la cita:", appointmentDateTimeArgentina.format());
 
-          // Comparar si la cita es posterior a la hora actual en la zona horaria de Argentina
-          return appointmentDateTimeArgentina.isAfter(currentDateTime);
-        }
-      );
+        // Comparar si la cita es posterior a la hora actual en la zona horaria de Argentina
+        return appointmentDateTimeArgentina.isAfter(currentDateTime);
+      });
       // Actualizar el array de citas del doctor con las citas filtradas
       userCita.appointments = updatedAppointments;
 
@@ -508,6 +440,40 @@ const deletePastAppointmentsUsers = async () => {
 cron.schedule("*/30 * * * * ", deletePastAppointmentsUsers);
 
 // ----------------DELETEAPPOINTMENTUSERPAST----------------
+
+// -----------------GETAPPOINTMENTSBYUSERID-----------------
+
+const getAppointmentsByUserId = async (req, res) => {
+  try {
+    const userId = req.params.userId; // Obtener el ID del usuario de los parámetros de la solicitud
+    const appointments = await AppointmentsModel.find({ user: userId }); // Buscar todas las citas con el ID de usuario especificado
+    res.status(200).json(appointments); // Enviar las citas encontradas como respuesta
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      message: "Error fetching appointments for the user",
+    });
+  }
+};
+
+// -----------------GETAPPOINTMENTSBYUSERID-----------------
+
+// -----------------GETAPPOINTMENTSBYDOCTORID-----------------
+
+const getAppointmentsByDoctorId = async (req, res) => {
+  try {
+    const doctorId = req.params.doctorId; // Obtener el ID del doctor de los parámetros de la solicitud
+    const appointments = await AppointmentsModel.find({ doctor: doctorId }); // Buscar todas las citas con el ID de doctor especificado
+    res.status(200).json(appointments); // Enviar las citas encontradas como respuesta
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      message: "Error fetching appointments for the doctor",
+    });
+  }
+};
+
+// -----------------GETAPPOINTMENTSBYDOCTORID-----------------
 
 module.exports = {
   postUser,
@@ -528,4 +494,6 @@ module.exports = {
   updateDoctorById,
   updateAppointmentById,
   deletePastAppointmentsUsers,
+  getAppointmentsByUserId,
+  getAppointmentsByDoctorId,
 };
