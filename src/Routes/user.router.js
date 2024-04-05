@@ -6,10 +6,15 @@ const { getAllUsers, getUserById } = require("../Controllers");
 const { deleteUserById } = require("../Controllers");
 const { updateUserById } = require("../Controllers");
 const { validateToken } = require("../Auth/validateToken");
+const { validateSchema } = require("../Auth/validator.middleware");
+const {
+  registerUserSchema,
+  loginUserSchema,
+} = require("../schemas/user.schema");
 
-router.post("/createuser/", postUser);
+router.post("/createuser/", validateSchema(registerUserSchema), postUser);
 
-router.post("/loginuser", postUserLogin);
+router.post("/loginuser", validateSchema(loginUserSchema), postUserLogin);
 
 router.get("/gettingusers", validateToken, getAllUsers);
 

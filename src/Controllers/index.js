@@ -171,7 +171,8 @@ const postUserLogin = async (req, res) => {
 };
 const postDoctorLogin = async (req, res) => {
   const { email, pass } = req.body;
-  const doctorFound = await UsersModel.findOne({ email });
+  const doctorFound = await DoctorsModel.findOne({ email });
+  
   try {
     if (!doctorFound)
       return res.status(400).json({ message: "Doctor not found" });
@@ -473,16 +474,23 @@ const deletePastAppointmentsUsers = async () => {
     // Iterar sobre cada doctor
     for (const userCita of userCitas) {
       // Filtrar las citas pasadas del doctor
-      const updatedAppointments = userCita.appointments.filter((appointment) => {
-        // Convertir la fecha y hora de la cita a un objeto Moment en UTC
-        const appointmentDateTimeUTC = moment.utc(appointment.dateTime);
-        // Ajustar la zona horaria a la de Argentina y restar 3 horas para corregir el desplazamiento
-        const appointmentDateTimeArgentina = appointmentDateTimeUTC.tz("America/Argentina/Buenos_Aires").add(3, "hours");
-        console.log("Fecha y hora de la cita:", appointmentDateTimeArgentina.format());
+      const updatedAppointments = userCita.appointments.filter(
+        (appointment) => {
+          // Convertir la fecha y hora de la cita a un objeto Moment en UTC
+          const appointmentDateTimeUTC = moment.utc(appointment.dateTime);
+          // Ajustar la zona horaria a la de Argentina y restar 3 horas para corregir el desplazamiento
+          const appointmentDateTimeArgentina = appointmentDateTimeUTC
+            .tz("America/Argentina/Buenos_Aires")
+            .add(3, "hours");
+          console.log(
+            "Fecha y hora de la cita:",
+            appointmentDateTimeArgentina.format()
+          );
 
-        // Comparar si la cita es posterior a la hora actual en la zona horaria de Argentina
-        return appointmentDateTimeArgentina.isAfter(currentDateTime);
-      });
+          // Comparar si la cita es posterior a la hora actual en la zona horaria de Argentina
+          return appointmentDateTimeArgentina.isAfter(currentDateTime);
+        }
+      );
       // Actualizar el array de citas del doctor con las citas filtradas
       userCita.appointments = updatedAppointments;
 
