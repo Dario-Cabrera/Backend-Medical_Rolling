@@ -9,6 +9,10 @@ const AppointmentsModel = new Schema({
     type: Date,
     require: true,
   },
+  isAvailable: {
+    type: Boolean,
+    default: true, 
+  },
   // No se si se guarda como objeto (Hora y minutos)
   user: {
     type: Schema.Types.ObjectId,
