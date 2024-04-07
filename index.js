@@ -9,9 +9,9 @@ app.use(express.json());
 app.use(cors());
 app.use(morgan("tiny"));
 // Monta el enrutador en las rutas base
-app.use("/users", userRoutes);
-app.use("/doctors", doctorRoutes);
-app.use("/appointments", appointmentRoutes);
+app.use("/api", userRoutes);
+app.use("/api", doctorRoutes);
+app.use("/api", appointmentRoutes);
 
 app.listen(3000, () => {
   console.log("Server on port 3000");
