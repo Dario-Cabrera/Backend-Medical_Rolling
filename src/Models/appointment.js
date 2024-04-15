@@ -3,11 +3,11 @@ const { Schema, model } = require("mongoose");
 const AppointmentsModel = new Schema({
   appointmentDate: {
     type: Date,
-    require: true,
+    required: true,
   },
   appointmentTime: {
     type: Date,
-    require: true,
+    required: true,
   },
   // No se si se guarda como objeto (Hora y minutos)
   user: {
