@@ -3,10 +3,12 @@ const { z } = require("zod");
 const registerAppointmentSchema = z.object({
   appointmentDate: z
     .string({ required_error: "AppointmentDate is required" })
-    .datetime(),
+    .datetime()
+    .optional(),
   appointmentTime: z
     .string({ required_error: "AppointmentTime is required" })
-    .datetime(),
+    .datetime()
+    .optional(),
 });
 
 module.exports = { registerAppointmentSchema };
