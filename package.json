@@ -1,0 +1,28 @@
+{
+  "name": "backend-medical_rolling",
+  "version": "1.0.0",
+  "description": "Backend de Medical Rolling. Proyecto Final de RollingCode Institute\r Integrantes: \r Federico Mansilla\r Cristhian Rodrigo Sosa Zurita\r Dario Ezequiel Cabrera\r Tema: Pagina Web de una Medicina Prepaga.",
+  "main": "index.js",
+  "type": "commonjs",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bcrypt": "^5.1.1",
+    "cors": "^2.8.5",
+    "cron": "^3.1.6",
+    "emailjs-com": "^3.2.0",
+    "express": "^4.19.1",
+    "jsonwebtoken": "^9.0.2",
+    "moment-timezone": "^0.5.45",
+    "mongoose": "^8.2.3",
+    "morgan": "^1.10.0",
+    "node-cron": "^3.0.3",
+    "nodemon": "^3.1.0",
+    "zod": "^3.22.4"
+  }
+}
