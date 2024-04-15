@@ -9,7 +9,7 @@ const { updateAppointmentById } = require("../Controllers");
 const { validateToken } = require("../Auth/validateToken");
 const { validateSchema } = require("../Auth/validator.middleware");
 
-const { registerAppointmentSchema } = require("../Schemas/appointment.schema");
+const { registerAppointmentSchema } = require("../schemas/appointment.schema");
 
 router.post(
   "/createappointment/",
@@ -17,8 +17,8 @@ router.post(
   validateToken,
   postAppointment
 );
-router.get("/gettingappointments", validateToken, getAllAppointments);
-router.get("/getoneappointment/:id", validateToken, getAppointmentById);
-router.delete("/deleteappointments/:id", validateToken, deleteAppointmentById);
-router.put("/updateappointments/:id", validateToken, updateAppointmentById);
+router.get("/gettingappointments", getAllAppointments);
+router.get("/getoneappointment/:id", getAppointmentById);
+router.delete("/deleteappointments/:id", deleteAppointmentById);
+router.put("/updateappointments/:id", updateAppointmentById);
 module.exports = router;
