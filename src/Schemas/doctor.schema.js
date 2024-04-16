@@ -1,6 +1,9 @@
 const { z } = require("zod");
 
 const registerDoctorSchema = z.object({
+  dni: z
+    .number({ required_error: "DNI is required" })
+    .min(8, "dni must be al least 8 characters long"),
   name: z
     .string({ required_error: "Name is required" })
     .min(3, "Name must be at least 3 characters long"),
