@@ -13,8 +13,8 @@ app.use("/api", userRoutes);
 app.use("/api", doctorRoutes);
 app.use("/api", appointmentRoutes);
 
-app.listen(3000, () => {
-  console.log("Server on port 3000");
+app.listen(3001, () => {
+  console.log("Server on port 3001");
 });
 
 const dbConnect = require("./src/ConfigDB");
