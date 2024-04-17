@@ -1,6 +1,10 @@
 const { Schema, model } = require("mongoose");
 
 const DoctorsModel = new Schema({
+  dni: {
+    type: Number,
+    require: true,
+  },
   name: {
     type: String,
     require: true,
@@ -40,9 +44,7 @@ const DoctorsModel = new Schema({
     type: Boolean,
     require: true,
   },
-  appointments: {
-    type: Array,
-  },
+  
   //Estos son los turnos, que tiene asignado el medico.
 });
 
