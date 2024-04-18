@@ -18,7 +18,7 @@ const registerDoctorSchema = z.object({
     .min(8, "Password must be at least 8 characters long")
     .max(80, "Password must not exceed 80 characters"),
   specialty: z.string({ required_error: "Specialty is required" }),
-  LicenceNumber: z.number({ required_error: "Licence Number is required" }),
+  licenceNumber: z.number({ required_error: "Licence Number is required" }),
 });
 
 const loginDoctorSchema = z.object({
