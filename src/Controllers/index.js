@@ -145,33 +145,61 @@ const postAppointment = async (req, res) => {
 const postUserLogin = async (req, res) => {
   //Destructura email y pass
   const { email, pass } = req.body;
-  //Buscar el usuario en la base de datos en imail
+
   const userFound = await UsersModel.findOne({ email });
-  //Valida si se encontro o no
+  const doctorFound = await DoctorsModel.findOne({ email });
   try {
-    if (!userFound) return res.status(400).json({ message: "User not found" });
-    //Valida si la contraseña es correcta
-    const isMatch = await bcrypt.compareSync(pass, userFound.pass);
-    if (!isMatch)
-      return res.status(400).json({ message: "Incorrect password" });
-    //Crea un token con las props del usuario encontrado
-    const token = await createAccessToken({
-      id: userFound._id,
-      isDoctor: userFound.isDoctor,
-      isAuditor: userFound.isAuditor,
-      name: userFound.name,
-      lastname: userFound.lastname,
-      email: userFound.email,
-      province: userFound.province,
-      area: userFound.area,
-      phone: userFound.phone,
-    });
-    //Muestra el token
-    res.status(200).json(token);
+    if (userFound) {
+      // Validar la contraseña del usuario
+      const isUserMatch = await bcrypt.compareSync(pass, userFound.pass);
+      if (isUserMatch) {
+        // Usuario autenticado correctamente, generar token
+        const token = await createAccessToken({
+          id: userFound._id,
+          isDoctor: userFound.isDoctor,
+          isAuditor: userFound.isAuditor,
+          name: userFound.name,
+          lastname: userFound.lastname,
+          email: userFound.email,
+          province: userFound.province,
+          area: userFound.area,
+          phone: userFound.phone,
+        });
+        //Muestra el token
+        res.status(200).json(token);
+      } else {
+        // Contraseña incorrecta para el usuario
+        return res.status(400).json({ message: "Incorrect user password" });
+      }
+    } else if (doctorFound) {
+      // Validar la contraseña del doctor
+      const isDoctorMatch = await bcrypt.compareSync(pass, doctorFound.pass);
+      if (isDoctorMatch) {
+        // Doctor autenticado correctamente, generar token
+        const token = await createAccessToken({
+          id: doctorFound._id,
+          name: doctorFound.name,
+          lastname: doctorFound.lastname,
+          email: doctorFound.email,
+          specialty: doctorFound.specialty,
+          LicenceNumber: doctorFound.LicenceNumber,
+          isDoctor: doctorFound.isDoctor,
+          isAuditor: doctorFound.isAuditor,
+          appointments: doctorFound.appointments,
+        });
+        //Muestra el token
+        res.status(200).json(token);
+      } else {
+        // Contraseña incorrecta para el doctor
+        return res.status(400).json({ message: "Incorrect doctor password" });
+      }
+    } else {
+      // Usuario y doctor no encontrados
+      return res.status(400).json({ message: "User not found" });
+    }
   } catch (error) {
-    res.status(500).json({
-      message: error.message,
-    });
+    console.error("Error:", error);
+    return res.status(500).json({ message: "Internal Server Error" });
   }
 };
 
@@ -488,9 +516,9 @@ const updateAppointmentById = async (req, res) => {
 
     // Guardar los cambios en la base de datos
     const updatedAppointment = await existingAppointment.save();
-    
+
     res.status(200).json({
-      updatedAppointment
+      updatedAppointment,
     });
   } catch (error) {
     console.error("Error updating appointment:", error.message);
