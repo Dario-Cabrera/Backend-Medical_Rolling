@@ -11,18 +11,7 @@ const { createAccessToken } = require("../Libs/jwt");
 const postUser = async (req, res) => {
   try {
     //Deconstruye props de la consulta
-    const {
-      name,
-      lastname,
-      email,
-      province,
-      area,
-      phone,
-      pass,
-      isDoctor,
-      isAuditor,
-      appointments,
-    } = req.body;
+    const { dni, name, lastname, email, pass, province, area, phone, address, isDoctor, isAuditor } = req.body;
     //Logica relacionada con la creacion de usuarios desde el Frontend
     const userFound = await UsersModel.findOne({ email });
     if (userFound) return res.status(400).json(["The email is already in use"]);
@@ -31,16 +20,17 @@ const postUser = async (req, res) => {
     const passwordHash = await bcrypt.hash(pass, 10);
     //Modelo de props a guardar en el usuario
     const newUser = new UsersModel({
+      dni,
       name,
       lastname,
       email,
+      pass: passwordHash,
       province,
       area,
       phone,
-      pass: passwordHash,
+      address,
       isDoctor,
       isAuditor,
-      appointments,
     });
     //Guarda el usuario en la DB
     const userSaved = await newUser.save();
@@ -48,16 +38,17 @@ const postUser = async (req, res) => {
 
     res.status(200).json({
       id: userSaved._id,
+      dni: userSaved.dni,
       name: userSaved.name,
-      pass: userSaved.pass,
       lastname: userSaved.lastname,
       email: userSaved.email,
+      pass: userSaved.pass,
       province: userSaved.province,
       area: userSaved.area,
       phone: userSaved.phone,
+      address: userSaved.address,
       isDoctor: userSaved.isDoctor,
       isAuditor: userSaved.isAuditor,
-      appointments: userSaved.appointments,
     });
   } catch (error) {
     console.log(error);
@@ -69,25 +60,15 @@ const postUser = async (req, res) => {
 
 const postDoctor = async (req, res) => {
   try {
-    const {
-      name,
-      lastname,
-      email,
-      pass,
-      specialty,
-      LicenceNumber,
-      isDoctor,
-      isAuditor,
-      appointments,
-    } = req.body;
+    const { dni, name, lastname, email, pass, specialty, LicenceNumber, isDoctor, isAuditor } = req.body;
 
     const doctorFound = await DoctorsModel.findOne({ email });
-    if (doctorFound)
-      return res.status(400).json(["The email is already in use"]);
+    if (doctorFound) return res.status(400).json(["The email is already in use"]);
 
     const passwordHash = await bcrypt.hash(pass, 10);
 
     const newDoctor = new DoctorsModel({
+      dni,
       name,
       lastname,
       email,
@@ -96,20 +77,20 @@ const postDoctor = async (req, res) => {
       LicenceNumber,
       isDoctor,
       isAuditor,
-      appointments,
     });
     const doctorSaved = await newDoctor.save();
 
     res.status(200).json({
       id: doctorSaved._id,
+      dni: doctorSaved.dni,
       name: doctorSaved.name,
       lastname: doctorSaved.lastname,
       email: doctorSaved.email,
+      pass: doctorSaved.pass,
       specialty: doctorSaved.specialty,
       LicenceNumber: doctorSaved.LicenceNumber,
       isDoctor: doctorSaved.isDoctor,
       isAuditor: doctorSaved.isAuditor,
-      appointments: doctorSaved.appointments,
     });
   } catch (error) {
     console.log(error);
@@ -206,16 +187,12 @@ const postUserLogin = async (req, res) => {
 const verifyToken = async (req, res) => {
   const token = req.body.token;
   /* console.log(token) */
-  if (!token)
-    return res
-      .status(401)
-      .json({ message: "Aqui no esta llegnado nada,Unauthorized" });
+  if (!token) return res.status(401).json({ message: "Aqui no esta llegnado nada,Unauthorized" });
   jwt.verify(token, TOKEN_SECRET, async (err, user) => {
     if (err) return res.status(401).json({ message: "Aqui 2Unauthorized" });
     /* console.log(user.payload) */
     const userFound = await UsersModel.findById(user.payload.id);
-    if (!userFound)
-      return res.status(401).json({ message: "Aqui 3Unauthorized" });
+    if (!userFound) return res.status(401).json({ message: "Aqui 3Unauthorized" });
 
     return res.json({
       id: userFound,
@@ -234,12 +211,10 @@ const postDoctorLogin = async (req, res) => {
   const { email, pass } = req.body;
   const doctorFound = await DoctorsModel.findOne({ email });
   try {
-    if (!doctorFound)
-      return res.status(400).json({ message: "Doctor not found" });
+    if (!doctorFound) return res.status(400).json({ message: "Doctor not found" });
 
     const isMatch = await bcrypt.compareSync(pass, doctorFound.pass);
-    if (!isMatch)
-      return res.status(400).json({ message: "Incorrect password" });
+    if (!isMatch) return res.status(400).json({ message: "Incorrect password" });
 
     res.status(200).json({
       id: doctorFound._id,
@@ -371,11 +346,7 @@ const deleteUserById = async (req, res) => {
   try {
     const { id } = req.params;
     const deletedUser = await UsersModel.findByIdAndDelete(id);
-    deletedUser
-      ? res
-          .status(200)
-          .json({ message: "User deleted successfully", deletedUser })
-      : res.status(404).json({ message: "User not found" });
+    deletedUser ? res.status(200).json({ message: "User deleted successfully", deletedUser }) : res.status(404).json({ message: "User not found" });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Error deleting user" });
@@ -386,11 +357,7 @@ const deleteDoctorById = async (req, res) => {
   try {
     const { id } = req.params;
     const deletedDoctor = await DoctorsModel.findByIdAndDelete(id);
-    deletedDoctor
-      ? res
-          .status(200)
-          .json({ message: "Doctor deleted successfully", deletedDoctor })
-      : res.status(404).json({ message: "Doctor not found" });
+    deletedDoctor ? res.status(200).json({ message: "Doctor deleted successfully", deletedDoctor }) : res.status(404).json({ message: "Doctor not found" });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Error deleting doctor" });
@@ -420,21 +387,11 @@ const deleteAppointmentById = async (req, res) => {
 const updateUserById = async (req, res) => {
   try {
     const { id } = req.params;
-    const {
-      name,
-      lastname,
-      email,
-      province,
-      area,
-      phone,
-      pass,
-      isDoctor,
-      isAuditor,
-      appointments,
-    } = req.body;
+    const { dni, name, lastname, email, province, area, phone, pass, address, isDoctor, isAuditor } = req.body;
     const updatedUser = await UsersModel.findByIdAndUpdate(
       id,
       {
+        dni,
         name,
         lastname,
         email,
@@ -442,17 +399,13 @@ const updateUserById = async (req, res) => {
         area,
         phone,
         pass,
+        address,
         isDoctor,
         isAuditor,
-        appointments,
       },
       { new: true }
     );
-    updatedUser
-      ? res
-          .status(200)
-          .json({ message: "User updated successfully", updatedUser })
-      : res.status(404).json({ message: "User not found" });
+    updatedUser ? res.status(200).json({ message: "User updated successfully", updatedUser }) : res.status(404).json({ message: "User not found" });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Error updating user" });
@@ -462,20 +415,11 @@ const updateUserById = async (req, res) => {
 const updateDoctorById = async (req, res) => {
   try {
     const { id } = req.params;
-    const {
-      name,
-      lastname,
-      email,
-      pass,
-      specialty,
-      LicenceNumber,
-      isDoctor,
-      isAuditor,
-      appointments,
-    } = req.body;
+    const { dni, name, lastname, email, pass, specialty, LicenceNumber, isDoctor, isAuditor } = req.body;
     const updatedDoctor = await DoctorsModel.findByIdAndUpdate(
       id,
       {
+        dni,
         name,
         lastname,
         email,
@@ -484,15 +428,10 @@ const updateDoctorById = async (req, res) => {
         LicenceNumber,
         isDoctor,
         isAuditor,
-        appointments,
       },
       { new: true }
     );
-    updatedDoctor
-      ? res
-          .status(200)
-          .json({ message: "Doctor updated successfully", updatedDoctor })
-      : res.status(404).json({ message: "Doctor not found" });
+    updatedDoctor ? res.status(200).json({ message: "Doctor updated successfully", updatedDoctor }) : res.status(404).json({ message: "Doctor not found" });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Error updating doctor" });
