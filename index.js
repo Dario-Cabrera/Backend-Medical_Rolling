@@ -5,6 +5,8 @@ const app = express();
 const userRoutes = require("./src/Routes/user.router");
 const doctorRoutes = require("./src/Routes/doctor.router");
 const appointmentRoutes = require("./src/Routes/appointment.router");
+const horariocitaRoutes = require("./src/Routes/horarioscita.router");
+
 app.use(express.json());
 app.use(cors());
 app.use(morgan("tiny"));
@@ -12,6 +14,7 @@ app.use(morgan("tiny"));
 app.use("/api", userRoutes);
 app.use("/api", doctorRoutes);
 app.use("/api", appointmentRoutes);
+app.use("/api", horariocitaRoutes);
 
 app.listen(3001, () => {
   console.log("Server on port 3001");

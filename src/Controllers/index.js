@@ -492,6 +492,47 @@ const updateAppointmentById = async (req, res) => {
 
 // ----------------UPDATE----------------
 
+// ----------------HORARIOS DISPONIBLES CITA----------------
+
+const getAppointmentsByDoctorAndDate = async (req, res) => {
+  try {
+    const { doctorId, date } = req.query;
+
+    // Consultar la base de datos para obtener las citas existentes para el doctor y la fecha especificada
+    const existingAppointments = await AppointmentsModel.find({ doctor: doctorId, appointmentDate: date, state: true });
+
+    // Aquí debes agregar la lógica para filtrar los horarios disponibles
+    // Puedes usar la información de las citas existentes para calcular los horarios disponibles
+
+    // Por ejemplo, si asumimos que hay intervalos de 30 minutos entre citas, podrías hacer algo como esto:
+
+    // Crear un array con todas las horas disponibles en el día
+    const allTimes = [];
+    for (let hour = 9; hour <= 20; hour++) {
+      for (let minute = 0; minute < 60; minute += 30) {
+        allTimes.push(`${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`);
+      }
+    }
+
+    // Filtrar los horarios disponibles eliminando las horas ocupadas por las citas existentes
+    const availableTimes = allTimes.filter((time) => {
+      const timeString = time.split(":").join(""); // Convertir el formato de la hora a un string sin ":" para comparar
+      return !existingAppointments.some((appointment) => {
+        const appointmentTimeString = appointment.appointmentTime.split(":").join(""); // Convertir el formato de la hora de la cita
+        return appointmentTimeString === timeString;
+      });
+    });
+
+    // Enviar los horarios disponibles en la respuesta
+    res.status(200).json({ availableTimes });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error al obtener los horarios disponibles" });
+  }
+};
+
+// ----------------HORARIOS DISPONIBLES CITA----------------
+
 module.exports = {
   postUser,
   postDoctor,
@@ -513,4 +554,5 @@ module.exports = {
   updateDoctorById,
   updateAppointmentById,
   postAppointmentUserLog,
+  getAppointmentsByDoctorAndDate,
 };
