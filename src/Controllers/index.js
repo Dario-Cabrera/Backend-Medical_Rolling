@@ -464,7 +464,7 @@ const updateAppointmentById = async (req, res) => {
 
     console.log("Body de la solicitud:", req.body);
 
-    const { appointmentDate, appointmentTime, user, doctor } = req.body;
+    const { appointmentDate, appointmentTime, user, doctor, state } = req.body;
 
     // Verificar si el turno existe
     const existingAppointment = await AppointmentsModel.findById(id);
@@ -477,6 +477,7 @@ const updateAppointmentById = async (req, res) => {
     existingAppointment.appointmentTime = appointmentTime;
     existingAppointment.user = user;
     existingAppointment.doctor = doctor;
+    existingAppointment.state = state;
 
     // Guardar los cambios en la base de datos
     const updatedAppointment = await existingAppointment.save();
