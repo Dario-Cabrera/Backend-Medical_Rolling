@@ -102,6 +102,26 @@ const postDoctor = async (req, res) => {
 
 const postAppointment = async (req, res) => {
   try {
+    const { appointmentDate, appointmentTime, user, doctor } = req.body;
+
+    const newAppointment = new AppointmentsModel({
+      appointmentDate,
+      appointmentTime,
+      user,
+      doctor,
+    });
+
+    const appointmentSaved = await newAppointment.save();
+
+    res.status(200).json({ appointmentSaved });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Appointment not created" });
+  }
+};
+
+const postAppointmentUserLog = async (req, res) => {
+  try {
     const { appointmentDate, appointmentTime } = req.body;
     const { id: userId } = req.user; // Acceso al ID de usuario
     const doctorid = req.headers.doctorid;
@@ -441,7 +461,10 @@ const updateDoctorById = async (req, res) => {
 const updateAppointmentById = async (req, res) => {
   try {
     const { id } = req.params;
-    const { appointmentDate, appointmentTime } = req.body;
+
+    console.log("Body de la solicitud:", req.body);
+
+    const { appointmentDate, appointmentTime, user, doctor } = req.body;
 
     // Verificar si el turno existe
     const existingAppointment = await AppointmentsModel.findById(id);
@@ -452,6 +475,8 @@ const updateAppointmentById = async (req, res) => {
     // Actualizar los campos de la cita existente
     existingAppointment.appointmentDate = appointmentDate;
     existingAppointment.appointmentTime = appointmentTime;
+    existingAppointment.user = user;
+    existingAppointment.doctor = doctor;
 
     // Guardar los cambios en la base de datos
     const updatedAppointment = await existingAppointment.save();
@@ -487,4 +512,5 @@ module.exports = {
   updateUserById,
   updateDoctorById,
   updateAppointmentById,
+  postAppointmentUserLog,
 };
