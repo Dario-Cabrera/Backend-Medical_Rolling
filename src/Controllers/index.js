@@ -12,10 +12,12 @@ const postUser = async (req, res) => {
   try {
     //Deconstruye props de la consulta
     const {
+      dni,
       name,
       lastname,
       email,
       province,
+      address,
       area,
       phone,
       pass,
@@ -31,10 +33,12 @@ const postUser = async (req, res) => {
     const passwordHash = await bcrypt.hash(pass, 10);
     //Modelo de props a guardar en el usuario
     const newUser = new UsersModel({
+      dni,
       name,
       lastname,
       email,
       province,
+      address,
       area,
       phone,
       pass: passwordHash,
@@ -47,6 +51,7 @@ const postUser = async (req, res) => {
     //Genera el token de enviando las props a la funcion createAccessToken
 
     res.status(200).json({
+      dni: userSaved.dni,
       id: userSaved._id,
       name: userSaved.name,
       pass: userSaved.pass,
@@ -70,12 +75,13 @@ const postUser = async (req, res) => {
 const postDoctor = async (req, res) => {
   try {
     const {
+      dni,
       name,
       lastname,
       email,
       pass,
       specialty,
-      LicenceNumber,
+      licenceNumber,
       isDoctor,
       isAuditor,
       appointments,
@@ -88,12 +94,13 @@ const postDoctor = async (req, res) => {
     const passwordHash = await bcrypt.hash(pass, 10);
 
     const newDoctor = new DoctorsModel({
+      dni,
       name,
       lastname,
       email,
       pass: passwordHash,
       specialty,
-      LicenceNumber,
+      licenceNumber,
       isDoctor,
       isAuditor,
       appointments,
@@ -101,12 +108,13 @@ const postDoctor = async (req, res) => {
     const doctorSaved = await newDoctor.save();
 
     res.status(200).json({
+      dni: doctorSaved.dni,
       id: doctorSaved._id,
       name: doctorSaved.name,
       lastname: doctorSaved.lastname,
       email: doctorSaved.email,
       specialty: doctorSaved.specialty,
-      LicenceNumber: doctorSaved.LicenceNumber,
+      licenceNumber: doctorSaved.licenceNumber,
       isDoctor: doctorSaved.isDoctor,
       isAuditor: doctorSaved.isAuditor,
       appointments: doctorSaved.appointments,
@@ -155,12 +163,14 @@ const postUserLogin = async (req, res) => {
       if (isUserMatch) {
         // Usuario autenticado correctamente, generar token
         const token = await createAccessToken({
+          dni: userFound.dni,
           id: userFound._id,
           isDoctor: userFound.isDoctor,
           isAuditor: userFound.isAuditor,
           name: userFound.name,
           lastname: userFound.lastname,
           email: userFound.email,
+          address: userFound.address,
           province: userFound.province,
           area: userFound.area,
           phone: userFound.phone,
@@ -177,12 +187,13 @@ const postUserLogin = async (req, res) => {
       if (isDoctorMatch) {
         // Doctor autenticado correctamente, generar token
         const token = await createAccessToken({
+          dni: doctorFound.dni,
           id: doctorFound._id,
           name: doctorFound.name,
           lastname: doctorFound.lastname,
           email: doctorFound.email,
           specialty: doctorFound.specialty,
-          LicenceNumber: doctorFound.LicenceNumber,
+          licenceNumber: doctorFound.licenceNumber,
           isDoctor: doctorFound.isDoctor,
           isAuditor: doctorFound.isAuditor,
           appointments: doctorFound.appointments,
@@ -284,7 +295,7 @@ const postDoctorLogin = async (req, res) => {
       lastname: doctorFound.lastname,
       email: doctorFound.email,
       specialty: doctorFound.specialty,
-      LicenceNumber: doctorFound.LicenceNumber,
+      licenceNumber: doctorFound.licenceNumber,
       isDoctor: doctorFound.isDoctor,
       isAuditor: doctorFound.isAuditor,
       appointments: doctorFound.appointments,
@@ -505,7 +516,7 @@ const updateDoctorById = async (req, res) => {
       email,
       pass,
       specialty,
-      LicenceNumber,
+      licenceNumber,
       isDoctor,
       isAuditor,
       appointments,
@@ -518,7 +529,7 @@ const updateDoctorById = async (req, res) => {
         email,
         pass,
         specialty,
-        LicenceNumber,
+        licenceNumber,
         isDoctor,
         isAuditor,
         appointments,
