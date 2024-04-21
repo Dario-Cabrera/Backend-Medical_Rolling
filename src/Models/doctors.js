@@ -38,13 +38,13 @@ const DoctorsModel = new Schema({
   },
   isDoctor: {
     type: Boolean,
-    dafault: false,
+    require: true,
   },
   isAuditor: {
     type: Boolean,
-    dafault: false,
+    require: true,
   },
-
+  
   //Estos son los turnos, que tiene asignado el medico.
 });
 

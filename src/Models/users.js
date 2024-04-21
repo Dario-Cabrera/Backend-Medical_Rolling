@@ -46,11 +46,11 @@ const UserModel = new Schema({
   },
   isDoctor: {
     type: Boolean,
-    dafault:false,
+    require: true,
   },
   isAuditor: {
     type: Boolean,
-    dafault:false,
+    require: true,
   },
   
   //Estos son los turnos, que serán un objeto que contenga fecha y hora.
