@@ -32,7 +32,7 @@ const DoctorsModel = new Schema({
     type: String,
     require: true,
   },
-  LicenceNumber: {
+  licenceNumber: {
     type: Number,
     require: true,
   },

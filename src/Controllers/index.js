@@ -205,29 +205,66 @@ const postUserLogin = async (req, res) => {
 
 const verifyToken = async (req, res) => {
   const token = req.body.token;
-  /* console.log(token) */
-  if (!token)
+
+  if (!token) {
     return res
       .status(401)
-      .json({ message: "Aqui no esta llegnado nada,Unauthorized" });
-  jwt.verify(token, TOKEN_SECRET, async (err, user) => {
-    if (err) return res.status(401).json({ message: "Aqui 2Unauthorized" });
-    /* console.log(user.payload) */
-    const userFound = await UsersModel.findById(user.payload.id);
-    if (!userFound)
-      return res.status(401).json({ message: "Aqui 3Unauthorized" });
+      .json({ message: "Unauthorized: Token not provided" });
+  }
 
-    return res.json({
-      id: userFound,
-      name: userFound.name,
-      lastname: userFound.lastname,
-      email: userFound.email,
-      province: userFound.province,
-      area: userFound.area,
-      phone: userFound.phone,
-      isDoctor: userFound.isDoctor,
-    });
-  });
+  try {
+    const decoded = jwt.verify(token, TOKEN_SECRET);
+    const { id, isDoctor } = decoded.payload;
+
+    if (isDoctor) {
+      const doctorFound = await DoctorsModel.findById(id);
+      if (!doctorFound) {
+        return res
+          .status(401)
+          .json({ message: "Unauthorized: Doctor not found" });
+      }
+
+      // Return doctor information
+      return res.json({
+        dni: doctorFound.dni,
+        id: doctorFound._id,
+        name: doctorFound.name,
+        lastname: doctorFound.lastname,
+        email: doctorFound.email,
+        specialty: doctorFound.specialty,
+        licenceNumber: doctorFound.licenceNumber,
+        isDoctor: doctorFound.isDoctor,
+        isAuditor: doctorFound.isAuditor,
+        appointments: doctorFound.appointments,
+      });
+    } else {
+      const userFound = await UsersModel.findById(id);
+      if (!userFound) {
+        return res
+          .status(401)
+          .json({ message: "Unauthorized: User not found" });
+      }
+
+      // Return user information
+      return res.json({
+        dni: userFound.dni,
+        id: userFound._id,
+        name: userFound.name,
+        lastname: userFound.lastname,
+        email: userFound.email,
+        address: userFound.address,
+        province: userFound.province,
+        area: userFound.area,
+        phone: userFound.phone,
+        isDoctor: userFound.isDoctor,
+        isAuditor: userFound.isAuditor,
+        appointments: userFound.appointments,
+      });
+    }
+  } catch (error) {
+    console.error("Error:", error);
+    return res.status(401).json({ message: "Unauthorized: Invalid token" });
+  }
 };
 
 const postDoctorLogin = async (req, res) => {
