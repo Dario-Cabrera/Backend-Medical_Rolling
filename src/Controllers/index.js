@@ -358,6 +358,19 @@ const getAppointmentById = async (req, res) => {
   }
 };
 
+const getAppointmentsByUserId = async (req, res) => {
+  try {
+    const { userId } = req.params; // Obtenemos el ID del usuario de los parámetros de la solicitud
+    const appointments = await AppointmentsModel.find({ user: userId }); // Buscamos citas con el ID de usuario especificado
+    res.status(200).json(appointments); // Enviamos las citas encontradas como respuesta
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      message: "Error fetching appointments by user",
+    });
+  }
+};
+
 // ------------GETBYID-GETONE------------
 
 // ----------------DELETE----------------
@@ -556,4 +569,5 @@ module.exports = {
   updateAppointmentById,
   postAppointmentUserLog,
   getAppointmentsByDoctorAndDate,
+  getAppointmentsByUserId,
 };
