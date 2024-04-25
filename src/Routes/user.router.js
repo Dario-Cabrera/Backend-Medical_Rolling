@@ -7,10 +7,7 @@ const { deleteUserById } = require("../Controllers");
 const { updateUserById } = require("../Controllers");
 const { validateToken } = require("../Auth/validateToken");
 const { validateSchema } = require("../Auth/validator.middleware");
-const {
-  registerUserSchema,
-  loginUserSchema,
-} = require("../schemas/user.schema");
+const { registerUserSchema, loginUserSchema } = require("../schemas/user.schema");
 const { verifyToken } = require("../Controllers");
 const { verifyDoctor } = require("../Controllers");
 
@@ -20,12 +17,12 @@ router.post("/loginuser", validateSchema(loginUserSchema), postUserLogin);
 
 router.post("/verifyuser", verifyToken);
 
-router.get("/gettingusers", validateToken, getAllUsers);
+router.get("/gettingusers", getAllUsers);
 
-router.get("/getoneuser/:id", validateToken, getUserById);
+router.get("/getoneuser/:id", getUserById);
 
-router.delete("/deleteusers/:id", validateToken, deleteUserById);
+router.delete("/deleteusers/:id", deleteUserById);
 
-router.put("/updateusers/:id", validateToken, updateUserById);
+router.put("/updateusers/:id", updateUserById);
 
 module.exports = router;

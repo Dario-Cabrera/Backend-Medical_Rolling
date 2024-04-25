@@ -11,20 +11,7 @@ const { createAccessToken } = require("../Libs/jwt");
 const postUser = async (req, res) => {
   try {
     //Deconstruye props de la consulta
-    const {
-      dni,
-      name,
-      lastname,
-      email,
-      province,
-      address,
-      area,
-      phone,
-      pass,
-      isDoctor,
-      isAuditor,
-      appointments,
-    } = req.body;
+    const { dni, name, lastname, email, pass, province, area, phone, address, isDoctor, isAuditor } = req.body;
     //Logica relacionada con la creacion de usuarios desde el Frontend
     const userFound = await UsersModel.findOne({ email });
     if (userFound) return res.status(400).json(["The email is already in use"]);
@@ -37,14 +24,14 @@ const postUser = async (req, res) => {
       name,
       lastname,
       email,
+      pass: passwordHash,
       province,
       address,
       area,
       phone,
-      pass: passwordHash,
+      address,
       isDoctor,
       isAuditor,
-      appointments,
     });
     //Guarda el usuario en la DB
     const userSaved = await newUser.save();
@@ -53,16 +40,17 @@ const postUser = async (req, res) => {
     res.status(200).json({
       dni: userSaved.dni,
       id: userSaved._id,
+      dni: userSaved.dni,
       name: userSaved.name,
-      pass: userSaved.pass,
       lastname: userSaved.lastname,
       email: userSaved.email,
+      pass: userSaved.pass,
       province: userSaved.province,
       area: userSaved.area,
       phone: userSaved.phone,
+      address: userSaved.address,
       isDoctor: userSaved.isDoctor,
       isAuditor: userSaved.isAuditor,
-      appointments: userSaved.appointments,
     });
   } catch (error) {
     console.log(error);
@@ -74,22 +62,10 @@ const postUser = async (req, res) => {
 
 const postDoctor = async (req, res) => {
   try {
-    const {
-      dni,
-      name,
-      lastname,
-      email,
-      pass,
-      specialty,
-      licenceNumber,
-      isDoctor,
-      isAuditor,
-      appointments,
-    } = req.body;
 
+    const { dni, name, lastname, email, pass, specialty, LicenceNumber, isDoctor, isAuditor } = req.body;
     const doctorFound = await DoctorsModel.findOne({ email });
-    if (doctorFound)
-      return res.status(400).json(["The email is already in use"]);
+    if (doctorFound) return res.status(400).json(["The email is already in use"]);
 
     const passwordHash = await bcrypt.hash(pass, 10);
 
@@ -103,21 +79,21 @@ const postDoctor = async (req, res) => {
       licenceNumber,
       isDoctor,
       isAuditor,
-      appointments,
     });
     const doctorSaved = await newDoctor.save();
 
     res.status(200).json({
       dni: doctorSaved.dni,
       id: doctorSaved._id,
+      dni: doctorSaved.dni,
       name: doctorSaved.name,
       lastname: doctorSaved.lastname,
       email: doctorSaved.email,
+      pass: doctorSaved.pass,
       specialty: doctorSaved.specialty,
       licenceNumber: doctorSaved.licenceNumber,
       isDoctor: doctorSaved.isDoctor,
       isAuditor: doctorSaved.isAuditor,
-      appointments: doctorSaved.appointments,
     });
   } catch (error) {
     console.log(error);
@@ -128,6 +104,26 @@ const postDoctor = async (req, res) => {
 };
 
 const postAppointment = async (req, res) => {
+  try {
+    const { appointmentDate, appointmentTime, user, doctor } = req.body;
+
+    const newAppointment = new AppointmentsModel({
+      appointmentDate,
+      appointmentTime,
+      user,
+      doctor,
+    });
+
+    const appointmentSaved = await newAppointment.save();
+
+    res.status(200).json({ appointmentSaved });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Appointment not created" });
+  }
+};
+
+const postAppointmentUserLog = async (req, res) => {
   try {
     const { appointmentDate, appointmentTime } = req.body;
     const { id: userId } = req.user; // Acceso al ID de usuario
@@ -223,6 +219,7 @@ const verifyToken = async (req, res) => {
       .json({ message: "Unauthorized: Token not provided" });
   }
 
+
   try {
     const decoded = jwt.verify(token, TOKEN_SECRET);
     const { id, isDoctor } = decoded.payload;
@@ -282,12 +279,10 @@ const postDoctorLogin = async (req, res) => {
   const { email, pass } = req.body;
   const doctorFound = await DoctorsModel.findOne({ email });
   try {
-    if (!doctorFound)
-      return res.status(400).json({ message: "Doctor not found" });
+    if (!doctorFound) return res.status(400).json({ message: "Doctor not found" });
 
     const isMatch = await bcrypt.compareSync(pass, doctorFound.pass);
-    if (!isMatch)
-      return res.status(400).json({ message: "Incorrect password" });
+    if (!isMatch) return res.status(400).json({ message: "Incorrect password" });
 
     res.status(200).json({
       id: doctorFound._id,
@@ -411,6 +406,32 @@ const getAppointmentById = async (req, res) => {
   }
 };
 
+const getAppointmentsByUserId = async (req, res) => {
+  try {
+    const { userId } = req.params; // Obtenemos el ID del usuario de los parámetros de la solicitud
+    const appointments = await AppointmentsModel.find({ user: userId }); // Buscamos citas con el ID de usuario especificado
+    res.status(200).json(appointments); // Enviamos las citas encontradas como respuesta
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      message: "Error fetching appointments by user",
+    });
+  }
+};
+
+const getAppointmentsByDoctorId = async (req, res) => {
+  try {
+    const { doctorId } = req.params; // Obtenemos el ID del usuario de los parámetros de la solicitud
+    const appointments = await AppointmentsModel.find({ doctor: doctorId }); // Buscamos citas con el ID de usuario especificado
+    res.status(200).json(appointments); // Enviamos las citas encontradas como respuesta
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      message: "Error fetching appointments by user",
+    });
+  }
+};
+
 // ------------GETBYID-GETONE------------
 
 // ----------------DELETE----------------
@@ -419,11 +440,7 @@ const deleteUserById = async (req, res) => {
   try {
     const { id } = req.params;
     const deletedUser = await UsersModel.findByIdAndDelete(id);
-    deletedUser
-      ? res
-          .status(200)
-          .json({ message: "User deleted successfully", deletedUser })
-      : res.status(404).json({ message: "User not found" });
+    deletedUser ? res.status(200).json({ message: "User deleted successfully", deletedUser }) : res.status(404).json({ message: "User not found" });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Error deleting user" });
@@ -434,11 +451,7 @@ const deleteDoctorById = async (req, res) => {
   try {
     const { id } = req.params;
     const deletedDoctor = await DoctorsModel.findByIdAndDelete(id);
-    deletedDoctor
-      ? res
-          .status(200)
-          .json({ message: "Doctor deleted successfully", deletedDoctor })
-      : res.status(404).json({ message: "Doctor not found" });
+    deletedDoctor ? res.status(200).json({ message: "Doctor deleted successfully", deletedDoctor }) : res.status(404).json({ message: "Doctor not found" });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Error deleting doctor" });
@@ -468,21 +481,11 @@ const deleteAppointmentById = async (req, res) => {
 const updateUserById = async (req, res) => {
   try {
     const { id } = req.params;
-    const {
-      name,
-      lastname,
-      email,
-      province,
-      area,
-      phone,
-      pass,
-      isDoctor,
-      isAuditor,
-      appointments,
-    } = req.body;
+    const { dni, name, lastname, email, province, area, phone, pass, address, isDoctor, isAuditor } = req.body;
     const updatedUser = await UsersModel.findByIdAndUpdate(
       id,
       {
+        dni,
         name,
         lastname,
         email,
@@ -490,17 +493,13 @@ const updateUserById = async (req, res) => {
         area,
         phone,
         pass,
+        address,
         isDoctor,
         isAuditor,
-        appointments,
       },
       { new: true }
     );
-    updatedUser
-      ? res
-          .status(200)
-          .json({ message: "User updated successfully", updatedUser })
-      : res.status(404).json({ message: "User not found" });
+    updatedUser ? res.status(200).json({ message: "User updated successfully", updatedUser }) : res.status(404).json({ message: "User not found" });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Error updating user" });
@@ -510,20 +509,13 @@ const updateUserById = async (req, res) => {
 const updateDoctorById = async (req, res) => {
   try {
     const { id } = req.params;
-    const {
-      name,
-      lastname,
-      email,
-      pass,
-      specialty,
-      licenceNumber,
-      isDoctor,
-      isAuditor,
-      appointments,
-    } = req.body;
+
+    const { dni, name, lastname, email, pass, specialty, licenceNumber, isDoctor, isAuditor } = req.body;
+
     const updatedDoctor = await DoctorsModel.findByIdAndUpdate(
       id,
       {
+        dni,
         name,
         lastname,
         email,
@@ -532,15 +524,10 @@ const updateDoctorById = async (req, res) => {
         licenceNumber,
         isDoctor,
         isAuditor,
-        appointments,
       },
       { new: true }
     );
-    updatedDoctor
-      ? res
-          .status(200)
-          .json({ message: "Doctor updated successfully", updatedDoctor })
-      : res.status(404).json({ message: "Doctor not found" });
+    updatedDoctor ? res.status(200).json({ message: "Doctor updated successfully", updatedDoctor }) : res.status(404).json({ message: "Doctor not found" });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Error updating doctor" });
@@ -550,7 +537,10 @@ const updateDoctorById = async (req, res) => {
 const updateAppointmentById = async (req, res) => {
   try {
     const { id } = req.params;
-    const { appointmentDate, appointmentTime } = req.body;
+
+    console.log("Body de la solicitud:", req.body);
+
+    const { appointmentDate, appointmentTime, user, doctor, state } = req.body;
 
     // Verificar si el turno existe
     const existingAppointment = await AppointmentsModel.findById(id);
@@ -561,6 +551,9 @@ const updateAppointmentById = async (req, res) => {
     // Actualizar los campos de la cita existente
     existingAppointment.appointmentDate = appointmentDate;
     existingAppointment.appointmentTime = appointmentTime;
+    existingAppointment.user = user;
+    existingAppointment.doctor = doctor;
+    existingAppointment.state = state;
 
     // Guardar los cambios en la base de datos
     const updatedAppointment = await existingAppointment.save();
@@ -575,6 +568,47 @@ const updateAppointmentById = async (req, res) => {
 };
 
 // ----------------UPDATE----------------
+
+// ----------------HORARIOS DISPONIBLES CITA----------------
+
+const getAppointmentsByDoctorAndDate = async (req, res) => {
+  try {
+    const { doctorId, date } = req.query;
+
+    // Consultar la base de datos para obtener las citas existentes para el doctor y la fecha especificada
+    const existingAppointments = await AppointmentsModel.find({ doctor: doctorId, appointmentDate: date, state: true });
+
+    // Aquí debes agregar la lógica para filtrar los horarios disponibles
+    // Puedes usar la información de las citas existentes para calcular los horarios disponibles
+
+    // Por ejemplo, si asumimos que hay intervalos de 30 minutos entre citas, podrías hacer algo como esto:
+
+    // Crear un array con todas las horas disponibles en el día
+    const allTimes = [];
+    for (let hour = 9; hour <= 20; hour++) {
+      for (let minute = 0; minute < 60; minute += 30) {
+        allTimes.push(`${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`);
+      }
+    }
+
+    // Filtrar los horarios disponibles eliminando las horas ocupadas por las citas existentes
+    const availableTimes = allTimes.filter((time) => {
+      const timeString = time.split(":").join(""); // Convertir el formato de la hora a un string sin ":" para comparar
+      return !existingAppointments.some((appointment) => {
+        const appointmentTimeString = appointment.appointmentTime.split(":").join(""); // Convertir el formato de la hora de la cita
+        return appointmentTimeString === timeString;
+      });
+    });
+
+    // Enviar los horarios disponibles en la respuesta
+    res.status(200).json({ availableTimes });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error al obtener los horarios disponibles" });
+  }
+};
+
+// ----------------HORARIOS DISPONIBLES CITA----------------
 
 module.exports = {
   postUser,
@@ -596,4 +630,8 @@ module.exports = {
   updateUserById,
   updateDoctorById,
   updateAppointmentById,
+  postAppointmentUserLog,
+  getAppointmentsByDoctorAndDate,
+  getAppointmentsByUserId,
+  getAppointmentsByDoctorId,
 };
