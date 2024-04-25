@@ -26,6 +26,7 @@ const postUser = async (req, res) => {
       email,
       pass: passwordHash,
       province,
+      address,
       area,
       phone,
       address,
@@ -37,6 +38,7 @@ const postUser = async (req, res) => {
     //Genera el token de enviando las props a la funcion createAccessToken
 
     res.status(200).json({
+      dni: userSaved.dni,
       id: userSaved._id,
       dni: userSaved.dni,
       name: userSaved.name,
@@ -60,8 +62,8 @@ const postUser = async (req, res) => {
 
 const postDoctor = async (req, res) => {
   try {
-    const { dni, name, lastname, email, pass, specialty, LicenceNumber, isDoctor, isAuditor } = req.body;
 
+    const { dni, name, lastname, email, pass, specialty, LicenceNumber, isDoctor, isAuditor } = req.body;
     const doctorFound = await DoctorsModel.findOne({ email });
     if (doctorFound) return res.status(400).json(["The email is already in use"]);
 
@@ -74,13 +76,14 @@ const postDoctor = async (req, res) => {
       email,
       pass: passwordHash,
       specialty,
-      LicenceNumber,
+      licenceNumber,
       isDoctor,
       isAuditor,
     });
     const doctorSaved = await newDoctor.save();
 
     res.status(200).json({
+      dni: doctorSaved.dni,
       id: doctorSaved._id,
       dni: doctorSaved.dni,
       name: doctorSaved.name,
@@ -88,7 +91,7 @@ const postDoctor = async (req, res) => {
       email: doctorSaved.email,
       pass: doctorSaved.pass,
       specialty: doctorSaved.specialty,
-      LicenceNumber: doctorSaved.LicenceNumber,
+      licenceNumber: doctorSaved.licenceNumber,
       isDoctor: doctorSaved.isDoctor,
       isAuditor: doctorSaved.isAuditor,
     });
@@ -156,12 +159,14 @@ const postUserLogin = async (req, res) => {
       if (isUserMatch) {
         // Usuario autenticado correctamente, generar token
         const token = await createAccessToken({
+          dni: userFound.dni,
           id: userFound._id,
           isDoctor: userFound.isDoctor,
           isAuditor: userFound.isAuditor,
           name: userFound.name,
           lastname: userFound.lastname,
           email: userFound.email,
+          address: userFound.address,
           province: userFound.province,
           area: userFound.area,
           phone: userFound.phone,
@@ -178,12 +183,13 @@ const postUserLogin = async (req, res) => {
       if (isDoctorMatch) {
         // Doctor autenticado correctamente, generar token
         const token = await createAccessToken({
+          dni: doctorFound.dni,
           id: doctorFound._id,
           name: doctorFound.name,
           lastname: doctorFound.lastname,
           email: doctorFound.email,
           specialty: doctorFound.specialty,
-          LicenceNumber: doctorFound.LicenceNumber,
+          licenceNumber: doctorFound.licenceNumber,
           isDoctor: doctorFound.isDoctor,
           isAuditor: doctorFound.isAuditor,
           appointments: doctorFound.appointments,
@@ -206,25 +212,67 @@ const postUserLogin = async (req, res) => {
 
 const verifyToken = async (req, res) => {
   const token = req.body.token;
-  /* console.log(token) */
-  if (!token) return res.status(401).json({ message: "Aqui no esta llegnado nada,Unauthorized" });
-  jwt.verify(token, TOKEN_SECRET, async (err, user) => {
-    if (err) return res.status(401).json({ message: "Aqui 2Unauthorized" });
-    /* console.log(user.payload) */
-    const userFound = await UsersModel.findById(user.payload.id);
-    if (!userFound) return res.status(401).json({ message: "Aqui 3Unauthorized" });
 
-    return res.json({
-      id: userFound,
-      name: userFound.name,
-      lastname: userFound.lastname,
-      email: userFound.email,
-      province: userFound.province,
-      area: userFound.area,
-      phone: userFound.phone,
-      isDoctor: userFound.isDoctor,
-    });
-  });
+  if (!token) {
+    return res
+      .status(401)
+      .json({ message: "Unauthorized: Token not provided" });
+  }
+
+
+  try {
+    const decoded = jwt.verify(token, TOKEN_SECRET);
+    const { id, isDoctor } = decoded.payload;
+
+    if (isDoctor) {
+      const doctorFound = await DoctorsModel.findById(id);
+      if (!doctorFound) {
+        return res
+          .status(401)
+          .json({ message: "Unauthorized: Doctor not found" });
+      }
+
+      // Return doctor information
+      return res.json({
+        dni: doctorFound.dni,
+        id: doctorFound._id,
+        name: doctorFound.name,
+        lastname: doctorFound.lastname,
+        email: doctorFound.email,
+        specialty: doctorFound.specialty,
+        licenceNumber: doctorFound.licenceNumber,
+        isDoctor: doctorFound.isDoctor,
+        isAuditor: doctorFound.isAuditor,
+        appointments: doctorFound.appointments,
+      });
+    } else {
+      const userFound = await UsersModel.findById(id);
+      if (!userFound) {
+        return res
+          .status(401)
+          .json({ message: "Unauthorized: User not found" });
+      }
+
+      // Return user information
+      return res.json({
+        dni: userFound.dni,
+        id: userFound._id,
+        name: userFound.name,
+        lastname: userFound.lastname,
+        email: userFound.email,
+        address: userFound.address,
+        province: userFound.province,
+        area: userFound.area,
+        phone: userFound.phone,
+        isDoctor: userFound.isDoctor,
+        isAuditor: userFound.isAuditor,
+        appointments: userFound.appointments,
+      });
+    }
+  } catch (error) {
+    console.error("Error:", error);
+    return res.status(401).json({ message: "Unauthorized: Invalid token" });
+  }
 };
 
 const postDoctorLogin = async (req, res) => {
@@ -242,7 +290,7 @@ const postDoctorLogin = async (req, res) => {
       lastname: doctorFound.lastname,
       email: doctorFound.email,
       specialty: doctorFound.specialty,
-      LicenceNumber: doctorFound.LicenceNumber,
+      licenceNumber: doctorFound.licenceNumber,
       isDoctor: doctorFound.isDoctor,
       isAuditor: doctorFound.isAuditor,
       appointments: doctorFound.appointments,
@@ -461,7 +509,9 @@ const updateUserById = async (req, res) => {
 const updateDoctorById = async (req, res) => {
   try {
     const { id } = req.params;
-    const { dni, name, lastname, email, pass, specialty, LicenceNumber, isDoctor, isAuditor } = req.body;
+
+    const { dni, name, lastname, email, pass, specialty, licenceNumber, isDoctor, isAuditor } = req.body;
+
     const updatedDoctor = await DoctorsModel.findByIdAndUpdate(
       id,
       {
@@ -471,7 +521,7 @@ const updateDoctorById = async (req, res) => {
         email,
         pass,
         specialty,
-        LicenceNumber,
+        licenceNumber,
         isDoctor,
         isAuditor,
       },
