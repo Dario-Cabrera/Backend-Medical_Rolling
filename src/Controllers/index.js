@@ -15,6 +15,10 @@ const postUser = async (req, res) => {
     //Logica relacionada con la creacion de usuarios desde el Frontend
     const userFound = await UsersModel.findOne({ email });
     if (userFound) return res.status(400).json(["The email is already in use"]);
+    const dniExists = await UsersModel.findOne({ dni });
+    if (dniExists) {
+      return res.status(400).json(["The DNI is already in use"]);
+    }
 
     // Hashea el passward
     const passwordHash = await bcrypt.hash(pass, 10);
