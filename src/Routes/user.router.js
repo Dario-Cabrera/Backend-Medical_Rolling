@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const { postUser } = require("../Controllers");
 const { postUserLogin } = require("../Controllers");
-const { getAllUsers, getUserById } = require("../Controllers");
+const { getAllUsers, getUserById, checkDniUserAvailability, checkEmailUserAvailability } = require("../Controllers");
 const { deleteUserById } = require("../Controllers");
 const { updateUserById } = require("../Controllers");
 const { validateToken } = require("../Auth/validateToken");
@@ -20,6 +20,10 @@ router.post("/verifyuser", verifyToken);
 router.get("/gettingusers", getAllUsers);
 
 router.get("/getoneuser/:id", getUserById);
+
+router.get("/checkDniUser/:dni", checkDniUserAvailability);
+
+router.get("/checkEmailUser/:email", checkEmailUserAvailability);
 
 router.delete("/deleteusers/:id", deleteUserById);
 

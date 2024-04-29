@@ -66,7 +66,6 @@ const postUser = async (req, res) => {
 
 const postDoctor = async (req, res) => {
   try {
-
     const { dni, name, lastname, email, pass, specialty, LicenceNumber, isDoctor, isAuditor } = req.body;
     const doctorFound = await DoctorsModel.findOne({ email });
     if (doctorFound) return res.status(400).json(["The email is already in use"]);
@@ -218,11 +217,8 @@ const verifyToken = async (req, res) => {
   const token = req.body.token;
 
   if (!token) {
-    return res
-      .status(401)
-      .json({ message: "Unauthorized: Token not provided" });
+    return res.status(401).json({ message: "Unauthorized: Token not provided" });
   }
-
 
   try {
     const decoded = jwt.verify(token, TOKEN_SECRET);
@@ -231,9 +227,7 @@ const verifyToken = async (req, res) => {
     if (isDoctor) {
       const doctorFound = await DoctorsModel.findById(id);
       if (!doctorFound) {
-        return res
-          .status(401)
-          .json({ message: "Unauthorized: Doctor not found" });
+        return res.status(401).json({ message: "Unauthorized: Doctor not found" });
       }
 
       // Return doctor information
@@ -252,9 +246,7 @@ const verifyToken = async (req, res) => {
     } else {
       const userFound = await UsersModel.findById(id);
       if (!userFound) {
-        return res
-          .status(401)
-          .json({ message: "Unauthorized: User not found" });
+        return res.status(401).json({ message: "Unauthorized: User not found" });
       }
 
       // Return user information
@@ -433,6 +425,34 @@ const getAppointmentsByDoctorId = async (req, res) => {
     res.status(500).json({
       message: "Error fetching appointments by user",
     });
+  }
+};
+
+const checkDniUserAvailability = async (req, res) => {
+  try {
+    const { dni } = req.params;
+    const user = await UsersModel.findOne({ dni });
+    if (user) {
+      return res.status(400).json({ message: "The DNI is already in use" });
+    }
+    res.status(200).json({ message: "The DNI is available" });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Error checking DNI availability" });
+  }
+};
+
+const checkEmailUserAvailability = async (req, res) => {
+  try {
+    const { email } = req.params;
+    const user = await UsersModel.findOne({ email });
+    if (user) {
+      return res.status(400).json({ message: "The email is already in use" });
+    }
+    res.status(200).json({ message: "The email is available" });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Error checking email availability" });
   }
 };
 
@@ -638,4 +658,6 @@ module.exports = {
   getAppointmentsByDoctorAndDate,
   getAppointmentsByUserId,
   getAppointmentsByDoctorId,
+  checkDniUserAvailability,
+  checkEmailUserAvailability,
 };
