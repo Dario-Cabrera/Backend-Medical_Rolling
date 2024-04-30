@@ -66,7 +66,7 @@ const postUser = async (req, res) => {
 
 const postDoctor = async (req, res) => {
   try {
-    const { dni, name, lastname, email, pass, specialty, LicenceNumber, isDoctor, isAuditor } = req.body;
+    const { dni, name, lastname, email, pass, specialty, licenceNumber, isDoctor, isAuditor } = req.body;
     const doctorFound = await DoctorsModel.findOne({ email });
     if (doctorFound) return res.status(400).json(["The email is already in use"]);
 
@@ -456,6 +456,34 @@ const checkEmailUserAvailability = async (req, res) => {
   }
 };
 
+const checkDniDoctorAvailability = async (req, res) => {
+  try {
+    const { dni } = req.params;
+    const doctor = await DoctorsModel.findOne({ dni });
+    if (doctor) {
+      return res.status(400).json({ message: "The DNI is already in use" });
+    }
+    res.status(200).json({ message: "The DNI is available" });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Error checking DNI availability" });
+  }
+};
+
+const checkEmailDoctorAvailability = async (req, res) => {
+  try {
+    const { email } = req.params;
+    const doctor = await DoctorsModel.findOne({ email });
+    if (doctor) {
+      return res.status(400).json({ message: "The email is already in use" });
+    }
+    res.status(200).json({ message: "The email is available" });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Error checking email availability" });
+  }
+};
+
 // ------------GETBYID-GETONE------------
 
 // ----------------DELETE----------------
@@ -660,4 +688,6 @@ module.exports = {
   getAppointmentsByDoctorId,
   checkDniUserAvailability,
   checkEmailUserAvailability,
+  checkDniDoctorAvailability,
+  checkEmailDoctorAvailability,
 };
