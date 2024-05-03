@@ -428,6 +428,19 @@ const getAppointmentsByDoctorId = async (req, res) => {
   }
 };
 
+const getDoctorsBySpecialty = async (req, res) => {
+  try {
+    const { specialty } = req.params;
+    const doctors = await DoctorsModel.find({ specialty });
+    res.status(200).json(doctors);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      message: "Error fetching doctors by specialty",
+    });
+  }
+};
+
 const checkDniUserAvailability = async (req, res) => {
   try {
     const { dni } = req.params;
@@ -690,4 +703,5 @@ module.exports = {
   checkEmailUserAvailability,
   checkDniDoctorAvailability,
   checkEmailDoctorAvailability,
+  getDoctorsBySpecialty,
 };

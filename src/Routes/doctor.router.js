@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const { postDoctor } = require("../Controllers");
 const { postDoctorLogin } = require("../Controllers");
-const { getAllDoctors, getDoctorById, checkDniDoctorAvailability, checkEmailDoctorAvailability } = require("../Controllers");
+const { getAllDoctors, getDoctorById, checkDniDoctorAvailability, checkEmailDoctorAvailability, getDoctorsBySpecialty } = require("../Controllers");
 const { deleteDoctorById } = require("../Controllers");
 const { updateDoctorById } = require("../Controllers");
 const { validateToken } = require("../Auth/validateToken");
@@ -23,6 +23,8 @@ router.get("/checkEmailDoctor/:email", checkEmailDoctorAvailability);
 router.get("/gettingdoctors", getAllDoctors);
 
 router.get("/getonedoctor/:id", getDoctorById);
+
+router.get("/doctorsbyspecialty/:specialty", getDoctorsBySpecialty);
 
 router.delete("/deletedoctors/:id", deleteDoctorById);
 
