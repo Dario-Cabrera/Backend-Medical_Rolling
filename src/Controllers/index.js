@@ -376,6 +376,19 @@ const getUserById = async (req, res) => {
   }
 };
 
+const getUserByDNI = async (req, res) => {
+  try {
+    const { dni } = req.params;
+    const findUser = await UsersModel.findOne({ dni }); // Utiliza findOne() en lugar de find() y pasa el filtro como un objeto
+    res.status(200).json(findUser);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      message: "Error fetching user",
+    });
+  }
+};
+
 const getDoctorById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -704,4 +717,5 @@ module.exports = {
   checkDniDoctorAvailability,
   checkEmailDoctorAvailability,
   getDoctorsBySpecialty,
+  getUserByDNI,
 };
