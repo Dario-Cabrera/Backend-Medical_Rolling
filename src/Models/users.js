@@ -4,6 +4,7 @@ const UserModel = new Schema({
   dni: {
     type: Number,
     require: true,
+    unique: true,
   },
   name: {
     type: String,
@@ -46,11 +47,11 @@ const UserModel = new Schema({
   },
   isDoctor: {
     type: Boolean,
-    require: true,
+    default: false,
   },
   isAuditor: {
     type: Boolean,
-    require: true,
+    default: false,
   },
   
   //Estos son los turnos, que serán un objeto que contenga fecha y hora.

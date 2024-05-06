@@ -32,19 +32,19 @@ const DoctorsModel = new Schema({
     type: String,
     require: true,
   },
-  LicenceNumber: {
+  licenceNumber: {
     type: Number,
     require: true,
   },
   isDoctor: {
     type: Boolean,
-    require: true,
+    default: true,
   },
   isAuditor: {
     type: Boolean,
-    require: true,
+    default: false,
   },
-  
+
   //Estos son los turnos, que tiene asignado el medico.
 });
 
