@@ -15,6 +15,10 @@ const postUser = async (req, res) => {
     //Logica relacionada con la creacion de usuarios desde el Frontend
     const userFound = await UsersModel.findOne({ email });
     if (userFound) return res.status(400).json(["The email is already in use"]);
+    const dniExists = await UsersModel.findOne({ dni });
+    if (dniExists) {
+      return res.status(400).json(["The DNI is already in use"]);
+    }
 
     // Hashea el passward
     const passwordHash = await bcrypt.hash(pass, 10);
@@ -62,8 +66,7 @@ const postUser = async (req, res) => {
 
 const postDoctor = async (req, res) => {
   try {
-
-    const { dni, name, lastname, email, pass, specialty, LicenceNumber, isDoctor, isAuditor } = req.body;
+    const { dni, name, lastname, email, pass, specialty, licenceNumber, isDoctor, isAuditor } = req.body;
     const doctorFound = await DoctorsModel.findOne({ email });
     if (doctorFound) return res.status(400).json(["The email is already in use"]);
 
@@ -214,11 +217,8 @@ const verifyToken = async (req, res) => {
   const token = req.body.token;
 
   if (!token) {
-    return res
-      .status(401)
-      .json({ message: "Unauthorized: Token not provided" });
+    return res.status(401).json({ message: "Unauthorized: Token not provided" });
   }
-
 
   try {
     const decoded = jwt.verify(token, TOKEN_SECRET);
@@ -227,9 +227,7 @@ const verifyToken = async (req, res) => {
     if (isDoctor) {
       const doctorFound = await DoctorsModel.findById(id);
       if (!doctorFound) {
-        return res
-          .status(401)
-          .json({ message: "Unauthorized: Doctor not found" });
+        return res.status(401).json({ message: "Unauthorized: Doctor not found" });
       }
 
       // Return doctor information
@@ -248,9 +246,7 @@ const verifyToken = async (req, res) => {
     } else {
       const userFound = await UsersModel.findById(id);
       if (!userFound) {
-        return res
-          .status(401)
-          .json({ message: "Unauthorized: User not found" });
+        return res.status(401).json({ message: "Unauthorized: User not found" });
       }
 
       // Return user information
@@ -380,6 +376,19 @@ const getUserById = async (req, res) => {
   }
 };
 
+const getUserByDNI = async (req, res) => {
+  try {
+    const { dni } = req.params;
+    const findUser = await UsersModel.findOne({ dni }); // Utiliza findOne() en lugar de find() y pasa el filtro como un objeto
+    res.status(200).json(findUser);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      message: "Error fetching user",
+    });
+  }
+};
+
 const getDoctorById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -429,6 +438,75 @@ const getAppointmentsByDoctorId = async (req, res) => {
     res.status(500).json({
       message: "Error fetching appointments by user",
     });
+  }
+};
+
+const getDoctorsBySpecialty = async (req, res) => {
+  try {
+    const { specialty } = req.params;
+    const doctors = await DoctorsModel.find({ specialty });
+    res.status(200).json(doctors);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      message: "Error fetching doctors by specialty",
+    });
+  }
+};
+
+const checkDniUserAvailability = async (req, res) => {
+  try {
+    const { dni } = req.params;
+    const user = await UsersModel.findOne({ dni });
+    if (user) {
+      return res.status(400).json({ message: "The DNI is already in use" });
+    }
+    res.status(200).json({ message: "The DNI is available" });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Error checking DNI availability" });
+  }
+};
+
+const checkEmailUserAvailability = async (req, res) => {
+  try {
+    const { email } = req.params;
+    const user = await UsersModel.findOne({ email });
+    if (user) {
+      return res.status(400).json({ message: "The email is already in use" });
+    }
+    res.status(200).json({ message: "The email is available" });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Error checking email availability" });
+  }
+};
+
+const checkDniDoctorAvailability = async (req, res) => {
+  try {
+    const { dni } = req.params;
+    const doctor = await DoctorsModel.findOne({ dni });
+    if (doctor) {
+      return res.status(400).json({ message: "The DNI is already in use" });
+    }
+    res.status(200).json({ message: "The DNI is available" });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Error checking DNI availability" });
+  }
+};
+
+const checkEmailDoctorAvailability = async (req, res) => {
+  try {
+    const { email } = req.params;
+    const doctor = await DoctorsModel.findOne({ email });
+    if (doctor) {
+      return res.status(400).json({ message: "The email is already in use" });
+    }
+    res.status(200).json({ message: "The email is available" });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Error checking email availability" });
   }
 };
 
@@ -634,4 +712,10 @@ module.exports = {
   getAppointmentsByDoctorAndDate,
   getAppointmentsByUserId,
   getAppointmentsByDoctorId,
+  checkDniUserAvailability,
+  checkEmailUserAvailability,
+  checkDniDoctorAvailability,
+  checkEmailDoctorAvailability,
+  getDoctorsBySpecialty,
+  getUserByDNI,
 };
