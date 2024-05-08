@@ -3,7 +3,40 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { TOKEN_SECRET } = require("../server/config/config");
 const { createAccessToken } = require("../Libs/jwt");
+const cron = require("node-cron");
+const moment = require("moment-timezone");
+const mongoose = require("mongoose");
 
+// ------ DESACTIVAR CITAS ------
+
+async function controlAppointments() {
+  try {
+    // Obtener la hora actual en la zona horaria de Buenos Aires
+    const now = moment().tz("America/Argentina/Buenos_Aires");
+
+    // Encontrar todas las citas activas que han pasado su fecha y hora programadas
+    const appointments = await AppointmentsModel.find({ state: true });
+
+    // Filtrar citas que hayan pasado su fecha y hora programadas
+    const pastAppointments = appointments.filter((appointment) => {
+      const appointmentDateTime = moment.tz(`${appointment.appointmentDate} ${appointment.appointmentTime}`, "YYYY-MM-DD HH:mm", "America/Argentina/Buenos_Aires");
+      return appointmentDateTime.isBefore(now);
+    });
+
+    // Desactivar las citas encontradas
+    for (const appointment of pastAppointments) {
+      appointment.state = false;
+      await appointment.save();
+    }
+  } catch (error) {
+    console.error("Error al actualizar el estado de las citas:", error);
+  }
+}
+
+// Programar la ejecución periódica de la función de control de citas cada 2 minutos
+cron.schedule("*/15 * * * *", () => {
+  controlAppointments();
+});
 // ----------------POST----------------
 
 //-------POST REGISTER-----------------
@@ -57,7 +90,6 @@ const postUser = async (req, res) => {
       isAuditor: userSaved.isAuditor,
     });
   } catch (error) {
-    console.log(error);
     res.status(500).send({
       message: "User not created",
     });
@@ -99,7 +131,6 @@ const postDoctor = async (req, res) => {
       isAuditor: doctorSaved.isAuditor,
     });
   } catch (error) {
-    console.log(error);
     res.status(500).json({
       message: "Doctor not created",
     });
@@ -121,7 +152,6 @@ const postAppointment = async (req, res) => {
 
     res.status(200).json({ appointmentSaved });
   } catch (error) {
-    console.log(error);
     res.status(500).json({ message: "Appointment not created" });
   }
 };
@@ -143,7 +173,6 @@ const postAppointmentUserLog = async (req, res) => {
 
     res.status(200).json({ appointmentSaved });
   } catch (error) {
-    console.log(error);
     res.status(500).json({ message: "Appointment not created" });
   }
 };
@@ -300,10 +329,8 @@ const postDoctorLogin = async (req, res) => {
 
 const verifyDoctor = async (req, res) => {
   try {
-    console.log(req);
     const doctorId = req.body.dataDoctor.id;
-    /*     console.log(req.body.dataDoctor);
-     */ const doctorFound = await DoctorsModel.findById(doctorId);
+    const doctorFound = await DoctorsModel.findById(doctorId);
     if (!doctorFound) return res.status(401).json({ message: "Unauthorized" });
     return res.json({
       id: doctorFound._id,
@@ -312,9 +339,7 @@ const verifyDoctor = async (req, res) => {
       email: doctorFound.email,
       specialty: doctorFound.specialty,
     });
-  } catch (error) {
-    console.log(error);
-  }
+  } catch (error) {}
 };
 
 // ----------------POST----------------
@@ -326,7 +351,6 @@ const getAllUsers = async (_req, res) => {
     const findUsers = await UsersModel.find({});
     res.status(200).json(findUsers);
   } catch (error) {
-    console.log(error);
     res.status(500).json({
       message: "Error fetching users",
     });
@@ -337,10 +361,7 @@ const getAllDoctors = async (_req, res) => {
   try {
     const findDoctors = await DoctorsModel.find();
     res.status(200).json(findDoctors);
-    /*     console.log(findDoctors);
-     */
   } catch (error) {
-    console.log(error);
     res.status(500).json({
       message: "Error fetching doctors",
     });
@@ -352,7 +373,6 @@ const getAllAppointments = async (req, res) => {
     const findAppointments = await AppointmentsModel.find();
     res.status(200).json(findAppointments);
   } catch (error) {
-    console.log(error);
     res.status(500).json({
       message: "Error fetching appointments",
     });
@@ -369,7 +389,6 @@ const getUserById = async (req, res) => {
     const findUser = await UsersModel.findById(id);
     res.status(200).json(findUser);
   } catch (error) {
-    console.log(error);
     res.status(500).json({
       message: "Error fetching user",
     });
@@ -382,7 +401,6 @@ const getUserByDNI = async (req, res) => {
     const findUser = await UsersModel.findOne({ dni }); // Utiliza findOne() en lugar de find() y pasa el filtro como un objeto
     res.status(200).json(findUser);
   } catch (error) {
-    console.log(error);
     res.status(500).json({
       message: "Error fetching user",
     });
@@ -395,7 +413,6 @@ const getDoctorById = async (req, res) => {
     const findDoctor = await DoctorsModel.findById(id);
     res.status(200).json(findDoctor);
   } catch (error) {
-    console.log(error);
     res.status(500).json({
       message: "Error fetching doctor",
     });
@@ -408,7 +425,6 @@ const getAppointmentById = async (req, res) => {
     const findAppointment = await AppointmentsModel.findById(id);
     res.status(200).json(findAppointment);
   } catch (error) {
-    console.log(error);
     res.status(500).json({
       message: "Error fetching appointment",
     });
@@ -421,7 +437,6 @@ const getAppointmentsByUserId = async (req, res) => {
     const appointments = await AppointmentsModel.find({ user: userId }); // Buscamos citas con el ID de usuario especificado
     res.status(200).json(appointments); // Enviamos las citas encontradas como respuesta
   } catch (error) {
-    console.log(error);
     res.status(500).json({
       message: "Error fetching appointments by user",
     });
@@ -434,7 +449,6 @@ const getAppointmentsByDoctorId = async (req, res) => {
     const appointments = await AppointmentsModel.find({ doctor: doctorId }); // Buscamos citas con el ID de usuario especificado
     res.status(200).json(appointments); // Enviamos las citas encontradas como respuesta
   } catch (error) {
-    console.log(error);
     res.status(500).json({
       message: "Error fetching appointments by user",
     });
@@ -447,7 +461,6 @@ const getDoctorsBySpecialty = async (req, res) => {
     const doctors = await DoctorsModel.find({ specialty });
     res.status(200).json(doctors);
   } catch (error) {
-    console.log(error);
     res.status(500).json({
       message: "Error fetching doctors by specialty",
     });
@@ -463,7 +476,6 @@ const checkDniUserAvailability = async (req, res) => {
     }
     res.status(200).json({ message: "The DNI is available" });
   } catch (error) {
-    console.log(error);
     res.status(500).json({ message: "Error checking DNI availability" });
   }
 };
@@ -477,7 +489,6 @@ const checkEmailUserAvailability = async (req, res) => {
     }
     res.status(200).json({ message: "The email is available" });
   } catch (error) {
-    console.log(error);
     res.status(500).json({ message: "Error checking email availability" });
   }
 };
@@ -491,7 +502,6 @@ const checkDniDoctorAvailability = async (req, res) => {
     }
     res.status(200).json({ message: "The DNI is available" });
   } catch (error) {
-    console.log(error);
     res.status(500).json({ message: "Error checking DNI availability" });
   }
 };
@@ -505,7 +515,6 @@ const checkEmailDoctorAvailability = async (req, res) => {
     }
     res.status(200).json({ message: "The email is available" });
   } catch (error) {
-    console.log(error);
     res.status(500).json({ message: "Error checking email availability" });
   }
 };
@@ -520,7 +529,6 @@ const deleteUserById = async (req, res) => {
     const deletedUser = await UsersModel.findByIdAndDelete(id);
     deletedUser ? res.status(200).json({ message: "User deleted successfully", deletedUser }) : res.status(404).json({ message: "User not found" });
   } catch (error) {
-    console.log(error);
     res.status(500).json({ message: "Error deleting user" });
   }
 };
@@ -531,7 +539,6 @@ const deleteDoctorById = async (req, res) => {
     const deletedDoctor = await DoctorsModel.findByIdAndDelete(id);
     deletedDoctor ? res.status(200).json({ message: "Doctor deleted successfully", deletedDoctor }) : res.status(404).json({ message: "Doctor not found" });
   } catch (error) {
-    console.log(error);
     res.status(500).json({ message: "Error deleting doctor" });
   }
 };
@@ -547,7 +554,6 @@ const deleteAppointmentById = async (req, res) => {
         })
       : res.status(404).json({ message: "Appointment not found" });
   } catch (error) {
-    console.log(error);
     res.status(500).json({ message: "Error deleting appointment" });
   }
 };
@@ -579,7 +585,6 @@ const updateUserById = async (req, res) => {
     );
     updatedUser ? res.status(200).json({ message: "User updated successfully", updatedUser }) : res.status(404).json({ message: "User not found" });
   } catch (error) {
-    console.log(error);
     res.status(500).json({ message: "Error updating user" });
   }
 };
@@ -607,7 +612,6 @@ const updateDoctorById = async (req, res) => {
     );
     updatedDoctor ? res.status(200).json({ message: "Doctor updated successfully", updatedDoctor }) : res.status(404).json({ message: "Doctor not found" });
   } catch (error) {
-    console.log(error);
     res.status(500).json({ message: "Error updating doctor" });
   }
 };
@@ -615,8 +619,6 @@ const updateDoctorById = async (req, res) => {
 const updateAppointmentById = async (req, res) => {
   try {
     const { id } = req.params;
-
-    console.log("Body de la solicitud:", req.body);
 
     const { appointmentDate, appointmentTime, user, doctor, state } = req.body;
 
