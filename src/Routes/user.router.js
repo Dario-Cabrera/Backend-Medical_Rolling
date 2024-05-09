@@ -7,7 +7,7 @@ const { deleteUserById } = require("../Controllers");
 const { updateUserById } = require("../Controllers");
 const { validateToken } = require("../Auth/validateToken");
 const { validateSchema } = require("../Auth/validator.middleware");
-const { registerUserSchema, loginUserSchema } = require("../schemas/user.schema");
+const { registerUserSchema, loginUserSchema } = require("../Schemas/userSchema");
 const { verifyToken } = require("../Controllers");
 const { verifyDoctor } = require("../Controllers");
 

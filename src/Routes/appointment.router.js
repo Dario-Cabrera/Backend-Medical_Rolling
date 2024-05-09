@@ -9,7 +9,7 @@ const { updateAppointmentById } = require("../Controllers");
 const { validateToken } = require("../Auth/validateToken");
 const { validateSchema } = require("../Auth/validator.middleware");
 
-const { registerAppointmentSchema } = require("../schemas/appointment.schema");
+const { registerAppointmentSchema } = require("../Schemas/appointmentSchema");
 
 router.post("/createappointment/", postAppointment);
 router.post("/createappointment/", validateSchema(registerAppointmentSchema), postAppointmentUserLog);
