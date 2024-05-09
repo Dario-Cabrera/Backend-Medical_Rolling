@@ -8,7 +8,7 @@ const appointmentRoutes = require("./src/Routes/appointment.router");
 const horariocitaRoutes = require("./src/Routes/horarioscita.router");
 
 app.use(express.json());
-app.use(cors({ origin: "https://frontend-medical-rolling.vercel.app", credentials: true }));
+app.use(cors({ origin: "https://frontend-medical-rolling.vercel.app" }));
 app.use(morgan("tiny"));
 // Monta el enrutador en las rutas base
 app.use("/api", userRoutes);
