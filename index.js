@@ -16,9 +16,7 @@ app.use("/api", doctorRoutes);
 app.use("/api", appointmentRoutes);
 app.use("/api", horariocitaRoutes);
 
-app.listen(3001, () => {
-  console.log("Server on port 3001");
-});
+app.listen(3001, () => {});
 
 const dbConnect = require("./src/ConfigDB");
 dbConnect();
