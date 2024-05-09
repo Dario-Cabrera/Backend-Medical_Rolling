@@ -7,7 +7,7 @@ const { deleteDoctorById } = require("../Controllers");
 const { updateDoctorById } = require("../Controllers");
 const { validateToken } = require("../Auth/validateToken");
 const { validateSchema } = require("../Auth/validator.middleware");
-const { registerDoctorSchema, loginDoctorSchema } = require("../schemas/doctor.schema");
+const { registerDoctorSchema, loginDoctorSchema } = require("../Schemas/doctorSchema");
 const { verifyDoctor } = require("../Controllers");
 
 router.post("/createdoctor/", validateSchema(registerDoctorSchema), postDoctor);
