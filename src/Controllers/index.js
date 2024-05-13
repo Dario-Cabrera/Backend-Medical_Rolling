@@ -7,23 +7,17 @@ const cron = require("node-cron");
 const moment = require("moment-timezone");
 const mongoose = require("mongoose");
 
-// ------ DESACTIVAR CITAS ------
-
 async function controlAppointments() {
   try {
-    // Obtener la hora actual en la zona horaria de Buenos Aires
     const now = moment().tz("America/Argentina/Buenos_Aires");
 
-    // Encontrar todas las citas activas que han pasado su fecha y hora programadas
     const appointments = await AppointmentsModel.find({ state: true });
 
-    // Filtrar citas que hayan pasado su fecha y hora programadas
     const pastAppointments = appointments.filter((appointment) => {
       const appointmentDateTime = moment.tz(`${appointment.appointmentDate} ${appointment.appointmentTime}`, "YYYY-MM-DD HH:mm", "America/Argentina/Buenos_Aires");
       return appointmentDateTime.isBefore(now);
     });
 
-    // Desactivar las citas encontradas
     for (const appointment of pastAppointments) {
       appointment.state = false;
       await appointment.save();
@@ -33,19 +27,13 @@ async function controlAppointments() {
   }
 }
 
-// Programar la ejecución periódica de la función de control de citas cada 2 minutos
 cron.schedule("*/15 * * * *", () => {
   controlAppointments();
 });
-// ----------------POST----------------
-
-//-------POST REGISTER-----------------
 
 const postUser = async (req, res) => {
   try {
-    //Deconstruye props de la consulta
     const { dni, name, lastname, email, pass, province, area, phone, address, isDoctor, isAuditor } = req.body;
-    //Logica relacionada con la creacion de usuarios desde el Frontend
     const userFound = await UsersModel.findOne({ email });
     if (userFound) return res.status(400).json(["The email is already in use"]);
     const dniExists = await UsersModel.findOne({ dni });
@@ -53,9 +41,7 @@ const postUser = async (req, res) => {
       return res.status(400).json(["The DNI is already in use"]);
     }
 
-    // Hashea el passward
     const passwordHash = await bcrypt.hash(pass, 10);
-    //Modelo de props a guardar en el usuario
     const newUser = new UsersModel({
       dni,
       name,
@@ -70,9 +56,7 @@ const postUser = async (req, res) => {
       isDoctor,
       isAuditor,
     });
-    //Guarda el usuario en la DB
     const userSaved = await newUser.save();
-    //Genera el token de enviando las props a la funcion createAccessToken
 
     res.status(200).json({
       dni: userSaved.dni,
@@ -159,7 +143,7 @@ const postAppointment = async (req, res) => {
 const postAppointmentUserLog = async (req, res) => {
   try {
     const { appointmentDate, appointmentTime } = req.body;
-    const { id: userId } = req.user; // Acceso al ID de usuario
+    const { id: userId } = req.user;
     const doctorid = req.headers.doctorid;
 
     const newAppointment = new AppointmentsModel({
@@ -177,19 +161,15 @@ const postAppointmentUserLog = async (req, res) => {
   }
 };
 
-//-------------POST LOGIN--------------
 const postUserLogin = async (req, res) => {
-  //Destructura email y pass
   const { email, pass } = req.body;
 
   const userFound = await UsersModel.findOne({ email });
   const doctorFound = await DoctorsModel.findOne({ email });
   try {
     if (userFound) {
-      // Validar la contraseña del usuario
       const isUserMatch = await bcrypt.compareSync(pass, userFound.pass);
       if (isUserMatch) {
-        // Usuario autenticado correctamente, generar token
         const token = await createAccessToken({
           dni: userFound.dni,
           id: userFound._id,
@@ -203,17 +183,13 @@ const postUserLogin = async (req, res) => {
           area: userFound.area,
           phone: userFound.phone,
         });
-        //Muestra el token
         res.status(200).json(token);
       } else {
-        // Contraseña incorrecta para el usuario
         return res.status(400).json({ message: "Incorrect user password" });
       }
     } else if (doctorFound) {
-      // Validar la contraseña del doctor
       const isDoctorMatch = await bcrypt.compareSync(pass, doctorFound.pass);
       if (isDoctorMatch) {
-        // Doctor autenticado correctamente, generar token
         const token = await createAccessToken({
           dni: doctorFound.dni,
           id: doctorFound._id,
@@ -226,14 +202,11 @@ const postUserLogin = async (req, res) => {
           isAuditor: doctorFound.isAuditor,
           appointments: doctorFound.appointments,
         });
-        //Muestra el token
         res.status(200).json(token);
       } else {
-        // Contraseña incorrecta para el doctor
         return res.status(400).json({ message: "Incorrect doctor password" });
       }
     } else {
-      // Usuario y doctor no encontrados
       return res.status(400).json({ message: "User not found" });
     }
   } catch (error) {
@@ -259,7 +232,6 @@ const verifyToken = async (req, res) => {
         return res.status(401).json({ message: "Unauthorized: Doctor not found" });
       }
 
-      // Return doctor information
       return res.json({
         dni: doctorFound.dni,
         id: doctorFound._id,
@@ -278,7 +250,6 @@ const verifyToken = async (req, res) => {
         return res.status(401).json({ message: "Unauthorized: User not found" });
       }
 
-      // Return user information
       return res.json({
         dni: userFound.dni,
         id: userFound._id,
@@ -342,10 +313,6 @@ const verifyDoctor = async (req, res) => {
   } catch (error) {}
 };
 
-// ----------------POST----------------
-
-// ----------------GETALL----------------
-
 const getAllUsers = async (_req, res) => {
   try {
     const findUsers = await UsersModel.find({});
@@ -379,10 +346,6 @@ const getAllAppointments = async (req, res) => {
   }
 };
 
-// ----------------GETALL----------------
-
-// ------------GETBYID-GETONE------------
-
 const getUserById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -398,7 +361,7 @@ const getUserById = async (req, res) => {
 const getUserByDNI = async (req, res) => {
   try {
     const { dni } = req.params;
-    const findUser = await UsersModel.findOne({ dni }); // Utiliza findOne() en lugar de find() y pasa el filtro como un objeto
+    const findUser = await UsersModel.findOne({ dni });
     res.status(200).json(findUser);
   } catch (error) {
     res.status(500).json({
@@ -433,9 +396,9 @@ const getAppointmentById = async (req, res) => {
 
 const getAppointmentsByUserId = async (req, res) => {
   try {
-    const { userId } = req.params; // Obtenemos el ID del usuario de los parámetros de la solicitud
-    const appointments = await AppointmentsModel.find({ user: userId }); // Buscamos citas con el ID de usuario especificado
-    res.status(200).json(appointments); // Enviamos las citas encontradas como respuesta
+    const { userId } = req.params;
+    const appointments = await AppointmentsModel.find({ user: userId });
+    res.status(200).json(appointments);
   } catch (error) {
     res.status(500).json({
       message: "Error fetching appointments by user",
@@ -445,9 +408,9 @@ const getAppointmentsByUserId = async (req, res) => {
 
 const getAppointmentsByDoctorId = async (req, res) => {
   try {
-    const { doctorId } = req.params; // Obtenemos el ID del usuario de los parámetros de la solicitud
-    const appointments = await AppointmentsModel.find({ doctor: doctorId }); // Buscamos citas con el ID de usuario especificado
-    res.status(200).json(appointments); // Enviamos las citas encontradas como respuesta
+    const { doctorId } = req.params;
+    const appointments = await AppointmentsModel.find({ doctor: doctorId });
+    res.status(200).json(appointments);
   } catch (error) {
     res.status(500).json({
       message: "Error fetching appointments by user",
@@ -519,10 +482,6 @@ const checkEmailDoctorAvailability = async (req, res) => {
   }
 };
 
-// ------------GETBYID-GETONE------------
-
-// ----------------DELETE----------------
-
 const deleteUserById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -557,10 +516,6 @@ const deleteAppointmentById = async (req, res) => {
     res.status(500).json({ message: "Error deleting appointment" });
   }
 };
-
-// ----------------DELETE----------------
-
-// ----------------UPDATE----------------
 
 const updateUserById = async (req, res) => {
   try {
@@ -622,20 +577,17 @@ const updateAppointmentById = async (req, res) => {
 
     const { appointmentDate, appointmentTime, user, doctor, state } = req.body;
 
-    // Verificar si el turno existe
     const existingAppointment = await AppointmentsModel.findById(id);
     if (!existingAppointment) {
       return res.status(404).json({ message: "Appointment not found" });
     }
 
-    // Actualizar los campos de la cita existente
     existingAppointment.appointmentDate = appointmentDate;
     existingAppointment.appointmentTime = appointmentTime;
     existingAppointment.user = user;
     existingAppointment.doctor = doctor;
     existingAppointment.state = state;
 
-    // Guardar los cambios en la base de datos
     const updatedAppointment = await existingAppointment.save();
 
     res.status(200).json({
@@ -647,23 +599,12 @@ const updateAppointmentById = async (req, res) => {
   }
 };
 
-// ----------------UPDATE----------------
-
-// ----------------HORARIOS DISPONIBLES CITA----------------
-
 const getAppointmentsByDoctorAndDate = async (req, res) => {
   try {
     const { doctorId, date } = req.query;
 
-    // Consultar la base de datos para obtener las citas existentes para el doctor y la fecha especificada
     const existingAppointments = await AppointmentsModel.find({ doctor: doctorId, appointmentDate: date, state: true });
 
-    // Aquí debes agregar la lógica para filtrar los horarios disponibles
-    // Puedes usar la información de las citas existentes para calcular los horarios disponibles
-
-    // Por ejemplo, si asumimos que hay intervalos de 30 minutos entre citas, podrías hacer algo como esto:
-
-    // Crear un array con todas las horas disponibles en el día
     const allTimes = [];
     for (let hour = 9; hour <= 20; hour++) {
       for (let minute = 0; minute < 60; minute += 30) {
@@ -671,24 +612,20 @@ const getAppointmentsByDoctorAndDate = async (req, res) => {
       }
     }
 
-    // Filtrar los horarios disponibles eliminando las horas ocupadas por las citas existentes
     const availableTimes = allTimes.filter((time) => {
-      const timeString = time.split(":").join(""); // Convertir el formato de la hora a un string sin ":" para comparar
+      const timeString = time.split(":").join("");
       return !existingAppointments.some((appointment) => {
-        const appointmentTimeString = appointment.appointmentTime.split(":").join(""); // Convertir el formato de la hora de la cita
+        const appointmentTimeString = appointment.appointmentTime.split(":").join("");
         return appointmentTimeString === timeString;
       });
     });
 
-    // Enviar los horarios disponibles en la respuesta
     res.status(200).json({ availableTimes });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Error al obtener los horarios disponibles" });
   }
 };
-
-// ----------------HORARIOS DISPONIBLES CITA----------------
 
 module.exports = {
   postUser,
