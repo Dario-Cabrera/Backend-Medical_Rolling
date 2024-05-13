@@ -21,7 +21,6 @@ const AppointmentsModel = new Schema({
     type: Boolean,
     default: true,
   },
-  // No se si se guarda como objeto (Hora y minutos)
 });
 
 module.exports = model("appointments", AppointmentsModel);
